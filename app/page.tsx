@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Heart, Check } from 'lucide-react'
+import { Heart, Check, ChevronDown, MapPin, Trees, Layers, Zap } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
@@ -9,7 +9,8 @@ import { useRouter } from 'next/navigation'
 type Spot = {
   id: number
   name: string
-  line: string
+  area: string
+  mainLine: string
   station: string
   walkMinutes: number
   address: string
@@ -21,6 +22,9 @@ type Spot = {
   safety: string
   crowdLevel: string
   image: string
+  hasMultipleLines: boolean
+  hasExpressOrShinkansen: boolean
+  hasPark: boolean
 }
 
 // 仮データ
@@ -28,7 +32,8 @@ const SPOTS: Spot[] = [
   {
     id: 1,
     name: '田端大橋 跨線橋',
-    line: '埼玉高速鉄道',
+    area: '東京',
+    mainLine: '山手線',
     station: '田端駅',
     walkMinutes: 3,
     address: '東京都北区田端',
@@ -40,11 +45,15 @@ const SPOTS: Spot[] = [
     safety: '歩道幅2m、柵あり（腰より上）、車道と分離',
     crowdLevel: '平日朝夕やや混雑、日中・休日は空いている',
     image: '/spots/tabata.jpg',
+    hasMultipleLines: true,
+    hasExpressOrShinkansen: true,
+    hasPark: false,
   },
   {
     id: 2,
     name: '新小岩駅南口 線路沿い歩道',
-    line: '東京メトロ東西線',
+    area: '東京',
+    mainLine: '総武線',
     station: '新小岩駅',
     walkMinutes: 2,
     address: '東京都葛飾区新小岩',
@@ -56,11 +65,15 @@ const SPOTS: Spot[] = [
     safety: '歩道幅1.5m、金網柵あり、車道に面していない',
     crowdLevel: '商店街沿いのため常時人通りあり',
     image: '/spots/shinkoiwa.jpg',
+    hasMultipleLines: true,
+    hasExpressOrShinkansen: false,
+    hasPark: false,
   },
   {
     id: 3,
     name: '御茶ノ水 聖橋',
-    line: '京王線',
+    area: '東京',
+    mainLine: '中央線',
     station: '御茶ノ水駅',
     walkMinutes: 3,
     address: '東京都千代田区神田駿河台',
@@ -72,11 +85,15 @@ const SPOTS: Spot[] = [
     safety: '歩道幅1.5m、柵あり（腰より上）、ガードレールあり',
     crowdLevel: '観光地のため休日混雑、平日日中は空いている',
     image: '/spots/hijiri.jpg',
+    hasMultipleLines: true,
+    hasExpressOrShinkansen: false,
+    hasPark: false,
   },
   {
     id: 4,
     name: '品川駅高輪口 第一京浜跨線橋',
-    line: 'JR各線',
+    area: '東京',
+    mainLine: '東海道線',
     station: '品川駅',
     walkMinutes: 5,
     address: '東京都港区高輪',
@@ -88,11 +105,15 @@ const SPOTS: Spot[] = [
     safety: '歩道幅2m、柵あり（胸程度）、ガードレールあり',
     crowdLevel: '平日朝夕混雑、休日は比較的空いている',
     image: '/spots/shinagawa.jpg',
+    hasMultipleLines: true,
+    hasExpressOrShinkansen: true,
+    hasPark: false,
   },
   {
     id: 5,
     name: '西大井駅東口 線路沿い公園端',
-    line: '東急田園都市線',
+    area: '東京',
+    mainLine: '東海道線',
     station: '西大井駅',
     walkMinutes: 1,
     address: '東京都品川区西大井',
@@ -104,48 +125,85 @@ const SPOTS: Spot[] = [
     safety: '車道なし、フェンスあり、ベンチあり、トイレあり',
     crowdLevel: '公園利用者がいる程度、比較的空いている',
     image: '/spots/nishioi.jpg',
+    hasMultipleLines: true,
+    hasExpressOrShinkansen: true,
+    hasPark: true,
   },
 ]
 
-const LINES = ['すべて', '山手線', '京浜東北線', '東北本線', '高崎線', '常磐線', '総武線（快速）', '総武線（各停）', '中央線（快速）', '中央・総武線（各停）', '丸ノ内線', '東海道線', '横須賀線', '湘南新宿ライン', '東海道新幹線']
+// よく見る路線
+const POPULAR_LINES = ['西武線', '東武線', '東海道線', '中央線', '山手線', '京浜東北線']
+
+// エリアと路線データ
+const AREAS = ['東京', '埼玉', '神奈川', '千葉']
+
+const LINE_COMPANIES = {
+  'JR東日本': ['山手線', '京浜東北線', '中央線', '総武線', '東海道線', '横須賀線', '湘南新宿ライン'],
+  '私鉄': ['西武線', '東武線', '東急線', '京王線', '小田急線'],
+  '地下鉄': ['丸ノ内線', '銀座線', '日比谷線', '東西線'],
+}
 
 export default function Home() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'parent' | 'child'>('parent')
-  const [selectedLine, setSelectedLine] = useState('すべて')
+  const [selectedMainLine, setSelectedMainLine] = useState<string>('')
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [likedSpots, setLikedSpots] = useState<number[]>([])
   const [visitedSpots, setVisitedSpots] = useState<number[]>([])
   const [stampedSpots, setStampedSpots] = useState<number[]>([])
   const [animatingStamp, setAnimatingStamp] = useState<number | null>(null)
+  
+  // アコーディオン管理
+  const [showOtherLines, setShowOtherLines] = useState(false)
+  const [selectedArea, setSelectedArea] = useState<string>('')
+  const [expandedCompany, setExpandedCompany] = useState<string>('')
 
-  // localStorageから復元（SSRエラー回避）
+  // localStorageから復元
   useEffect(() => {
     const savedLiked = localStorage.getItem('likedSpots')
     const savedVisited = localStorage.getItem('visitedSpots')
     const savedStamped = localStorage.getItem('stampedSpots')
     
-    if (savedLiked) {
-      setLikedSpots(JSON.parse(savedLiked))
-    }
-    if (savedVisited) {
-      setVisitedSpots(JSON.parse(savedVisited))
-    }
-    if (savedStamped) {
-      setStampedSpots(JSON.parse(savedStamped))
-    }
+    if (savedLiked) setLikedSpots(JSON.parse(savedLiked))
+    if (savedVisited) setVisitedSpots(JSON.parse(savedVisited))
+    if (savedStamped) setStampedSpots(JSON.parse(savedStamped))
   }, [])
 
-  // 絞り込み処理
-  const filteredSpots = selectedLine === 'すべて' 
-    ? SPOTS 
-    : SPOTS.filter(spot => spot.lines.includes(selectedLine))
+  // フィルター処理
+  const filteredSpots = SPOTS.filter(spot => {
+    // 路線フィルター
+    if (selectedMainLine && spot.mainLine !== selectedMainLine) {
+      return false
+    }
+    
+    // 条件フィルター（AND検索）
+    if (selectedFilters.includes('駅近') && spot.walkMinutes > 5) {
+      return false
+    }
+    if (selectedFilters.includes('公園あり') && !spot.hasPark) {
+      return false
+    }
+    if (selectedFilters.includes('複数路線見れる') && !spot.hasMultipleLines) {
+      return false
+    }
+    if (selectedFilters.includes('特急・新幹線見れる') && !spot.hasExpressOrShinkansen) {
+      return false
+    }
+    
+    return true
+  })
+
+  // フィルタートグル
+  const toggleFilter = (filter: string) => {
+    setSelectedFilters(prev =>
+      prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
+    )
+  }
 
   // いいねトグル
   const toggleLike = (id: number) => {
     setLikedSpots(prev => {
-      const newLiked = prev.includes(id) 
-        ? prev.filter(spotId => spotId !== id) 
-        : [...prev, id]
+      const newLiked = prev.includes(id) ? prev.filter(spotId => spotId !== id) : [...prev, id]
       localStorage.setItem('likedSpots', JSON.stringify(newLiked))
       return newLiked
     })
@@ -154,34 +212,23 @@ export default function Home() {
   // 行ったトグル
   const toggleVisited = (id: number) => {
     setVisitedSpots(prev => {
-      const newVisited = prev.includes(id) 
-        ? prev.filter(spotId => spotId !== id) 
-        : [...prev, id]
+      const newVisited = prev.includes(id) ? prev.filter(spotId => spotId !== id) : [...prev, id]
       localStorage.setItem('visitedSpots', JSON.stringify(newVisited))
       return newVisited
     })
   }
 
-  // スタンプを押す
+  // スタンプトグル
   const toggleStamp = (id: number) => {
-    // アニメーション開始
     setAnimatingStamp(id)
-    
     setStampedSpots(prev => {
-      const newStamped = prev.includes(id) 
-        ? prev.filter(spotId => spotId !== id) 
-        : [...prev, id]
+      const newStamped = prev.includes(id) ? prev.filter(spotId => spotId !== id) : [...prev, id]
       localStorage.setItem('stampedSpots', JSON.stringify(newStamped))
       return newStamped
     })
-
-    // アニメーション終了
-    setTimeout(() => {
-      setAnimatingStamp(null)
-    }, 300)
+    setTimeout(() => setAnimatingStamp(null), 300)
   }
 
-  // 訪問済みスポットを取得
   const visitedSpotsList = SPOTS.filter(spot => visitedSpots.includes(spot.id))
 
   return (
@@ -199,9 +246,7 @@ export default function Home() {
           <button
             onClick={() => setActiveTab('parent')}
             className={`flex-1 py-3 rounded-md font-semibold transition-colors ${
-              activeTab === 'parent'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+              activeTab === 'parent' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
             スポット一覧
@@ -209,9 +254,7 @@ export default function Home() {
           <button
             onClick={() => setActiveTab('child')}
             className={`flex-1 py-3 rounded-md font-semibold transition-colors ${
-              activeTab === 'child'
-                ? 'bg-yellow-400 text-gray-800'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+              activeTab === 'child' ? 'bg-yellow-400 text-gray-800' : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
             スタンプ帳
@@ -222,17 +265,151 @@ export default function Home() {
       {/* 親タブ */}
       {activeTab === 'parent' && (
         <div className="max-w-6xl mx-auto px-4 pb-8">
-          {/* 絞り込み */}
-          <div className="mb-6">
-            <select
-              value={selectedLine}
-              onChange={(e) => setSelectedLine(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {LINES.map(line => (
-                <option key={line} value={line}>{line}</option>
-              ))}
-            </select>
+          {/* 検索エリア */}
+          <div className="bg-white rounded-2xl shadow-md p-6 mb-6 space-y-6">
+            {/* よく見る路線 */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">よく見る路線</h3>
+              <div className="flex flex-wrap gap-2">
+                {POPULAR_LINES.map(line => (
+                  <button
+                    key={line}
+                    onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      selectedMainLine === line
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {line}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* その他の路線（アコーディオン） */}
+            <div>
+              <button
+                onClick={() => setShowOtherLines(!showOtherLines)}
+                className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform ${showOtherLines ? 'rotate-180' : ''}`} />
+                その他の路線
+              </button>
+              
+              {showOtherLines && (
+                <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-200">
+                  {/* エリア選択 */}
+                  <div>
+                    <p className="text-xs text-gray-500 mb-2">エリアを選択</p>
+                    <div className="flex flex-wrap gap-2">
+                      {AREAS.map(area => (
+                        <button
+                          key={area}
+                          onClick={() => {
+                            setSelectedArea(selectedArea === area ? '' : area)
+                            setExpandedCompany('')
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                            selectedArea === area
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {area}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 会社・路線選択 */}
+                  {selectedArea && (
+                    <div className="space-y-2">
+                      {Object.entries(LINE_COMPANIES).map(([company, lines]) => (
+                        <div key={company}>
+                          <button
+                            onClick={() => setExpandedCompany(expandedCompany === company ? '' : company)}
+                            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                          >
+                            <ChevronDown className={`w-3 h-3 transition-transform ${expandedCompany === company ? 'rotate-180' : ''}`} />
+                            {company}
+                          </button>
+                          
+                          {expandedCompany === company && (
+                            <div className="mt-2 ml-5 flex flex-wrap gap-2">
+                              {lines.map(line => (
+                                <button
+                                  key={line}
+                                  onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
+                                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    selectedMainLine === line
+                                      ? 'bg-blue-500 text-white'
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {line}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 条件フィルター */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">条件で絞り込む</h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => toggleFilter('駅近')}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedFilters.includes('駅近')
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  駅近
+                </button>
+                <button
+                  onClick={() => toggleFilter('公園あり')}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedFilters.includes('公園あり')
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Trees className="w-3.5 h-3.5" />
+                  公園あり
+                </button>
+                <button
+                  onClick={() => toggleFilter('複数路線見れる')}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedFilters.includes('複数路線見れる')
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  複数路線見れる
+                </button>
+                <button
+                  onClick={() => toggleFilter('特急・新幹線見れる')}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedFilters.includes('特急・新幹線見れる')
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  特急・新幹線見れる
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* スポットカード一覧 */}
@@ -240,57 +417,49 @@ export default function Home() {
             {filteredSpots.map(spot => (
               <div
                 key={spot.id}
-                className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+                className="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
               >
                 {/* スポット画像 */}
                 <div 
                   className="relative w-full aspect-video cursor-pointer"
                   onClick={() => router.push(`/spot/${spot.id}`)}
                 >
-                  <Image
-                    src={spot.image}
-                    alt={spot.name}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={spot.image} alt={spot.name} fill className="object-cover" />
                 </div>
 
                 {/* カード内容 */}
                 <div className="p-4">
-                  <div 
-                    className="flex items-start justify-between mb-2 cursor-pointer"
-                    onClick={() => router.push(`/spot/${spot.id}`)}
-                  >
-                    {/* 主情報 */}
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">
-                        {spot.name}
-                      </h3>
-                      
-                      {/* 見える路線 */}
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {spot.lines.slice(0, 3).map((line, idx) => (
-                          <span key={idx} className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
-                            {line}
-                          </span>
-                        ))}
-                        {spot.lines.length > 3 && (
-                          <span className="text-xs text-gray-500 px-2 py-1">
-                            他{spot.lines.length - 3}路線
-                          </span>
-                        )}
-                      </div>
-
-                      {/* 副情報 */}
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <span>📍 {spot.station} / 徒歩{spot.walkMinutes}分</span>
-                        <span>🏷️ {spot.placeType}</span>
-                      </div>
+                  <div onClick={() => router.push(`/spot/${spot.id}`)} className="cursor-pointer">
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">{spot.name}</h3>
+                    <p className="text-xs text-gray-500 mb-3">{spot.area} / {spot.mainLine}</p>
+                    
+                    {/* 条件タグ */}
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {spot.walkMinutes <= 5 && (
+                        <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">駅近</span>
+                      )}
+                      {spot.hasPark && (
+                        <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">公園あり</span>
+                      )}
                     </div>
+                    
+                    {/* 他に見れる路線 */}
+                    {spot.lines.length > 1 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-1">他に見れる路線</p>
+                        <div className="flex flex-wrap gap-1">
+                          {spot.lines.filter(line => line !== spot.mainLine).slice(0, 3).map((line, idx) => (
+                            <span key={idx} className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">
+                              {line}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* アクションボタン */}
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -298,16 +467,8 @@ export default function Home() {
                       }}
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-all hover:scale-105"
                     >
-                      <Heart
-                        className={`w-5 h-5 ${
-                          likedSpots.includes(spot.id)
-                            ? 'fill-red-500 text-red-500'
-                            : 'text-gray-400'
-                        }`}
-                      />
-                      <span className={`text-sm font-semibold ${
-                        likedSpots.includes(spot.id) ? 'text-red-500' : 'text-gray-500'
-                      }`}>
+                      <Heart className={`w-5 h-5 ${likedSpots.includes(spot.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                      <span className={`text-sm font-semibold ${likedSpots.includes(spot.id) ? 'text-red-500' : 'text-gray-500'}`}>
                         いいね
                       </span>
                     </button>
@@ -318,16 +479,8 @@ export default function Home() {
                       }}
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-all hover:scale-105"
                     >
-                      <Check
-                        className={`w-5 h-5 ${
-                          visitedSpots.includes(spot.id)
-                            ? 'text-yellow-500'
-                            : 'text-gray-400'
-                        }`}
-                      />
-                      <span className={`text-sm font-semibold ${
-                        visitedSpots.includes(spot.id) ? 'text-yellow-500' : 'text-gray-500'
-                      }`}>
+                      <Check className={`w-5 h-5 ${visitedSpots.includes(spot.id) ? 'text-yellow-500' : 'text-gray-400'}`} />
+                      <span className={`text-sm font-semibold ${visitedSpots.includes(spot.id) ? 'text-yellow-500' : 'text-gray-500'}`}>
                         行った
                       </span>
                     </button>
@@ -336,6 +489,14 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          {/* 検索結果なし */}
+          {filteredSpots.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-xl text-gray-500">条件に合うスポットが見つかりませんでした</p>
+              <p className="text-sm text-gray-400 mt-2">条件を変更してみてください</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -344,35 +505,16 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 pb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="text-center mb-6">
-              <p className="text-3xl font-bold text-yellow-600">
-                {visitedSpots.length}こ いったよ！
-              </p>
+              <p className="text-3xl font-bold text-yellow-600">{visitedSpots.length}こ いったよ！</p>
             </div>
 
-            {/* 訪問済みスポット一覧 */}
             {visitedSpotsList.length > 0 ? (
               <div className="grid grid-cols-2 gap-4">
                 {visitedSpotsList.map(spot => (
-                  <div
-                    key={spot.id}
-                    className="p-6 rounded-lg bg-yellow-50 border-2 border-yellow-200"
-                  >
-                    <p className="text-lg font-bold text-gray-800 mb-4 text-center">
-                      {spot.name}
-                    </p>
-                    
-                    {/* スタンプ画像 */}
-                    <button
-                      onClick={() => toggleStamp(spot.id)}
-                      className="w-full flex justify-center"
-                    >
-                      <div 
-                        className={`relative w-32 h-32 transition-all duration-300 ${
-                          animatingStamp === spot.id
-                            ? 'scale-125'
-                            : 'scale-100 hover:scale-110'
-                        }`}
-                      >
+                  <div key={spot.id} className="p-6 rounded-lg bg-yellow-50 border-2 border-yellow-200">
+                    <p className="text-lg font-bold text-gray-800 mb-4 text-center">{spot.name}</p>
+                    <button onClick={() => toggleStamp(spot.id)} className="w-full flex justify-center">
+                      <div className={`relative w-32 h-32 transition-all duration-300 ${animatingStamp === spot.id ? 'scale-125' : 'scale-100 hover:scale-110'}`}>
                         <Image
                           src={stampedSpots.includes(spot.id) ? '/stamps/stamped.png' : '/stamps/hanko.png'}
                           alt={stampedSpots.includes(spot.id) ? 'スタンプ済み' : 'スタンプ'}
@@ -381,7 +523,6 @@ export default function Home() {
                         />
                       </div>
                     </button>
-                    
                     <p className="text-center text-sm text-gray-600 mt-2">
                       {stampedSpots.includes(spot.id) ? 'スタンプ済み' : 'タップしてスタンプ'}
                     </p>
