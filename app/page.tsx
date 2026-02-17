@@ -362,22 +362,7 @@ export default function Home() {
 
             {/* 条件フィルター */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">条件で絞り込む</h3>
-              {(selectedMainLine || selectedFilters.length > 0) && (
-                <button
-                  onClick={() => {
-                    setSelectedMainLine('')
-                    setSelectedFilters([])
-                    setSelectedArea('')
-                    setExpandedCompany('')
-                  }}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                >
-                すべて解除
-                </button>
-              )}
-              </div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">条件で絞り込む</h3>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => toggleFilter('駅近')}
@@ -424,6 +409,21 @@ export default function Home() {
                   特急・新幹線見れる
                 </button>
               </div>
+              
+              {/* 解除ボタン（条件選択時のみ表示） */}
+              {(selectedMainLine || selectedFilters.length > 0) && (
+                <button
+                  onClick={() => {
+                    setSelectedMainLine('')
+                    setSelectedFilters([])
+                    setSelectedArea('')
+                    setExpandedCompany('')
+                  }}
+                  className="mt-3 w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg transition-all border-2 border-red-200"
+                >
+                  🔄 条件をすべて解除
+                </button>
+              )}
             </div>
           </div>
 
