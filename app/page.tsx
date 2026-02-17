@@ -362,7 +362,22 @@ export default function Home() {
 
             {/* 条件フィルター */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">条件で絞り込む</h3>
+              <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-700">条件で絞り込む</h3>
+              {(selectedMainLine || selectedFilters.length > 0) && (
+                <button
+                  onClick={() => {
+                    setSelectedMainLine('')
+                    setSelectedFilters([])
+                    setSelectedArea('')
+                    setExpandedCompany('')
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                >
+                すべて解除
+                </button>
+              )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => toggleFilter('駅近')}
