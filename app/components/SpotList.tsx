@@ -22,6 +22,7 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'parent' | 'child'>('parent')
   const [selectedMainLine, setSelectedMainLine] = useState<string>('')
+  const [selectedArea, setSelectedArea] = useState<string>('')
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [likedSpots, setLikedSpots] = useState<string[]>([])
   const [visitedSpots, setVisitedSpots] = useState<string[]>([])
@@ -30,7 +31,6 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
   
   // アコーディオン管理
   const [showOtherLines, setShowOtherLines] = useState(false)
-  const [selectedArea, setSelectedArea] = useState<string>('')
   const [expandedCompany, setExpandedCompany] = useState<string>('')
 
   // localStorageから復元
@@ -46,8 +46,13 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
 
   // フィルター処理
   const filteredSpots = initialSpots.filter(spot => {
-    // 路線フィルター
-    if (selectedMainLine && !spot.lines.includes(selectedMainLine)) {
+    // エリアフィルター（部分一致）
+    if (selectedArea && !spot.area.includes(selectedArea)) {
+      return false
+    }
+    
+    // 路線フィルター（部分一致）
+    if (selectedMainLine && !spot.lines.some(line => line.includes(selectedMainLine))) {
       return false
     }
     
@@ -142,6 +147,26 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
         <div className="max-w-6xl mx-auto px-4 pb-8">
           {/* 検索エリア */}
           <div className="bg-white rounded-2xl shadow-md p-6 mb-6 space-y-6">
+            {/* エリア選択 */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">エリアで絞り込む</h3>
+              <div className="flex flex-wrap gap-2">
+                {AREAS.map(area => (
+                  <button
+                    key={area}
+                    onClick={() => setSelectedArea(selectedArea === area ? '' : area)}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      selectedArea === area
+                        ? 'bg-purple-500 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {area}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* よく見る路線 */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">よく見る路線</h3>
@@ -174,63 +199,38 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
               
               {showOtherLines && (
                 <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-200">
-                  {/* エリア選択 */}
-                  <div>
-                    <p className="text-xs text-gray-500 mb-2">エリアを選択</p>
-                    <div className="flex flex-wrap gap-2">
-                      {AREAS.map(area => (
-                        <button
-                          key={area}
-                          onClick={() => {
-                            setSelectedArea(selectedArea === area ? '' : area)
-                            setExpandedCompany('')
-                          }}
-                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                            selectedArea === area
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                        >
-                          {area}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* 会社・路線選択 */}
-                  {selectedArea && (
-                    <div className="space-y-2">
-                      {Object.entries(LINE_COMPANIES).map(([company, lines]) => (
-                        <div key={company}>
-                          <button
-                            onClick={() => setExpandedCompany(expandedCompany === company ? '' : company)}
-                            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                          >
-                            <ChevronDown className={`w-3 h-3 transition-transform ${expandedCompany === company ? 'rotate-180' : ''}`} />
-                            {company}
-                          </button>
-                          
-                          {expandedCompany === company && (
-                            <div className="mt-2 ml-5 flex flex-wrap gap-2">
-                              {lines.map(line => (
-                                <button
-                                  key={line}
-                                  onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
-                                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                                    selectedMainLine === line
-                                      ? 'bg-blue-500 text-white'
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                  }`}
-                                >
-                                  {line}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    {Object.entries(LINE_COMPANIES).map(([company, lines]) => (
+                      <div key={company}>
+                        <button
+                          onClick={() => setExpandedCompany(expandedCompany === company ? '' : company)}
+                          className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                        >
+                          <ChevronDown className={`w-3 h-3 transition-transform ${expandedCompany === company ? 'rotate-180' : ''}`} />
+                          {company}
+                        </button>
+                        
+                        {expandedCompany === company && (
+                          <div className="mt-2 ml-5 flex flex-wrap gap-2">
+                            {lines.map(line => (
+                              <button
+                                key={line}
+                                onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                  selectedMainLine === line
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                {line}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -286,12 +286,12 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
               </div>
               
               {/* 解除ボタン */}
-              {(selectedMainLine || selectedFilters.length > 0) && (
+              {(selectedArea || selectedMainLine || selectedFilters.length > 0) && (
                 <button
                   onClick={() => {
+                    setSelectedArea('')
                     setSelectedMainLine('')
                     setSelectedFilters([])
-                    setSelectedArea('')
                     setExpandedCompany('')
                   }}
                   className="mt-3 w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg transition-all border-2 border-red-200"
