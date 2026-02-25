@@ -9,6 +9,20 @@ import { Spot } from '@/app/data/schema'
 // よく見る路線
 const POPULAR_LINES = ['西武線', '東武線', '東海道線', '中央線', '山手線', '京浜東北線']
 
+// 路線グループ → 検索キーワードのマッピング
+// 「東武線」ボタンで「東武アーバンパークライン」なども一致させる
+const LINE_GROUP_KEYWORDS: Record<string, string[]> = {
+  '東武線': ['東武'],
+  '西武線': ['西武'],
+  '東海道線': ['東海道'],
+  '中央線': ['中央線', '中央・総武線'],
+  '山手線': ['山手線'],
+  '京浜東北線': ['京浜東北線'],
+  '東急線': ['東急'],
+  '京王線': ['京王'],
+  '小田急線': ['小田急'],
+}
+
 // エリアと路線データ
 const AREAS = ['東京', '埼玉', '神奈川', '千葉']
 
@@ -51,9 +65,12 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
       return false
     }
     
-    // 路線フィルター（部分一致）
-    if (selectedMainLine && !spot.lines.some(line => line.includes(selectedMainLine))) {
-      return false
+    // 路線フィルター（グループキーワードで部分一致）
+    if (selectedMainLine) {
+      const keywords = LINE_GROUP_KEYWORDS[selectedMainLine] ?? [selectedMainLine]
+      if (!spot.lines.some(line => keywords.some(keyword => line.includes(keyword)))) {
+        return false
+      }
     }
     
     // 条件フィルター（AND検索）
