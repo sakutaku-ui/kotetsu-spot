@@ -154,9 +154,25 @@ export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
       {/* コンテンツ */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'parent' | 'child')}>
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="parent">スポット一覧</TabsTrigger>
-            <TabsTrigger value="child">スタンプ帳</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6 h-auto p-1.5 gap-2 bg-blue-100 rounded-2xl">
+            <TabsTrigger
+              value="parent"
+              className="flex flex-col items-center gap-1 py-3 rounded-xl text-sm font-bold
+                !text-blue-400 !bg-transparent !border-0 !shadow-none
+                data-[state=active]:!bg-blue-500 data-[state=active]:!text-white data-[state=active]:!shadow-md"
+            >
+              <span className="text-2xl">🚃</span>
+              スポット一覧
+            </TabsTrigger>
+            <TabsTrigger
+              value="child"
+              className="flex flex-col items-center gap-1 py-3 rounded-xl text-sm font-bold
+                !text-yellow-500 !bg-transparent !border-0 !shadow-none
+                data-[state=active]:!bg-yellow-400 data-[state=active]:!text-yellow-900 data-[state=active]:!shadow-md"
+            >
+              <span className="text-2xl">📖</span>
+              スタンプ帳
+            </TabsTrigger>
           </TabsList>
 
           {/* スポット一覧タブ */}
