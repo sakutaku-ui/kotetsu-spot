@@ -101,7 +101,7 @@ export default function SpotDetailPage({
           </Link>
           <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">検索</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">スポット検索</Button>
             </Link>
             <Link href="/mypage">
               <Button variant="ghost" size="sm" className="text-xs sm:text-sm">マイページ</Button>
@@ -148,7 +148,7 @@ export default function SpotDetailPage({
                     <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="text-sm text-gray-600 mb-1">最寄り駅</div>
-                      <div className="font-semibold text-lg">{spot.station}駅</div>
+                      <div className="font-semibold text-lg">{spot.station}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl">
