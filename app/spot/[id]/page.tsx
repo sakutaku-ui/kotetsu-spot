@@ -13,24 +13,12 @@ import {
   Navigation,
   Train,
   Heart,
-  Check
+  Check,
+  Store
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-type Spot = {
-  id: string
-  name: string
-  area: string
-  station: string
-  walkMinutes: number
-  address: string
-  description: string
-  placeType: string
-  lines: string[]
-  safetyNote?: string
-  image: string
-}
+import { Spot } from '@/app/data/schema'
 
 export default function SpotDetailPage({
   params,
@@ -234,6 +222,36 @@ export default function SpotDetailPage({
 
           {/* サイドバー */}
           <div className="space-y-6">
+            {/* 近くの施設 */}
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Store className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold mb-4 text-blue-900">
+                      近くの施設
+                    </h2>
+                    {spot.facilities && spot.facilities.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {spot.facilities.map((facility, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="px-4 py-2 text-sm font-medium bg-white border-blue-200"
+                          >
+                            {facility}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-600 text-sm">
+                        近くの施設情報はありません
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             {/* 住所カード */}
             <Card>
               <CardContent className="p-6">

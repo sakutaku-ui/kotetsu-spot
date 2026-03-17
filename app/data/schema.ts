@@ -12,9 +12,9 @@ export type Spot = {
   description: string
   placeType: PlaceType
   lines: string[]
+  facilities?: string[]
   safetyRank: SafetyRank
   safetyNote: string
-  facilities?: string[]
   image: string
   status: SpotStatus
   submittedBy?: string

@@ -126,7 +126,7 @@ async function importFromCSV() {
           description: description.trim(),
           place_type: placeType.trim(),
           lines: linesList,
-          facilities: facilitiesList, // 追加
+          facilities: facilitiesList,
           safety_rank: 5, // 固定値（全て安全と判断したもののみ登録）
           safety_note: safetyNote ? safetyNote.trim() : null,
           image: publicUrl,
