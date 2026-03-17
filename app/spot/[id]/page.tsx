@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { getSpotById } from '@/app/data/spots'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,14 +18,68 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Heart, Check } from 'lucide-react'
 
-export default async function SpotDetailPage({
+export default function SpotDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }) {
-  const { id } = await params
-  const spot = await getSpotById(id)
+  const [spot, setSpot] = useState<any>(null)
+  const [isLiked, setIsLiked] = useState(false)
+  const [isVisited, setIsVisited] = useState(false)
+
+  useEffect(() => {
+    // スポットデータを取得
+    async function loadSpot() {
+      const response = await fetch(`/api/spots/${params.id}`)
+      const data = await response.json()
+      setSpot(data)
+    }
+    
+    // いいね・行った状態を取得
+    const savedLiked = localStorage.getItem('likedSpots')
+    const savedVisited = localStorage.getItem('visitedSpots')
+    
+    if (savedLiked) {
+      const liked = JSON.parse(savedLiked)
+      setIsLiked(liked.includes(params.id))
+    }
+    if (savedVisited) {
+      const visited = JSON.parse(savedVisited)
+      setIsVisited(visited.includes(params.id))
+    }
+    
+    loadSpot()
+  }, [params.id])
+
+  const toggleLike = () => {
+    const savedLiked = localStorage.getItem('likedSpots')
+    const liked = savedLiked ? JSON.parse(savedLiked) : []
+    
+    const newLiked = isLiked 
+      ? liked.filter((id: string) => id !== params.id)
+      : [...liked, params.id]
+    
+    localStorage.setItem('likedSpots', JSON.stringify(newLiked))
+    setIsLiked(!isLiked)
+  }
+
+  const toggleVisited = () => {
+    const savedVisited = localStorage.getItem('visitedSpots')
+    const visited = savedVisited ? JSON.parse(savedVisited) : []
+    
+    const newVisited = isVisited
+      ? visited.filter((id: string) => id !== params.id)
+      : [...visited, params.id]
+    
+    localStorage.setItem('visitedSpots', JSON.stringify(newVisited))
+    setIsVisited(!isVisited)
+  }
+
+  if (!spot) {
+    return <div className="min-h-screen flex items-center justify-center">読み込み中...</div>
+  }
 
   if (!spot) {
     notFound()
@@ -32,18 +89,18 @@ export default async function SpotDetailPage({
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-10 backdrop-blur-lg bg-white/90">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link href="/">
-            <h1 className="text-2xl font-bold text-blue-600 cursor-pointer hover:opacity-80 transition-opacity">
+            <h1 className="text-lg sm:text-2xl font-bold text-blue-600 cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
               🚃 子鉄スポット帳
             </h1>
           </Link>
-          <nav className="flex gap-4">
+          <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
-              <Button variant="ghost">スポット検索</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">検索</Button>
             </Link>
             <Link href="/mypage">
-              <Button variant="ghost">マイページ</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">マイページ</Button>
             </Link>
           </nav>
         </div>
@@ -126,7 +183,7 @@ export default async function SpotDetailPage({
                   見える路線
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {spot.lines.map((line, idx) => (
+                  {spot.lines.map((line: string, idx: number) => (
                     <Badge 
                       key={idx} 
                       variant="secondary" 
@@ -196,7 +253,7 @@ export default async function SpotDetailPage({
                       複数路線が見れる
                     </Badge>
                   )}
-                  {spot.lines.some(line => line.includes('新幹線') || line.includes('特急')) && (
+                  {spot.lines.some((line: string) => line.includes('新幹線') || line.includes('特急')) && (
                     <Badge variant="outline" className="w-full justify-start bg-purple-50 text-purple-700 border-purple-200 py-2">
                       特急・新幹線が見れる
                     </Badge>
@@ -208,11 +265,23 @@ export default async function SpotDetailPage({
             {/* アクションボタン */}
             <Card>
               <CardContent className="p-6 space-y-3">
-                <Button className="w-full" size="lg">
-                  お気に入りに追加
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  variant={isLiked ? "default" : "outline"}
+                  onClick={toggleLike}
+                >
+                  <Heart className={`w-5 h-5 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                  {isLiked ? 'いいね済み' : 'いいね'}
                 </Button>
-                <Button className="w-full" variant="outline" size="lg">
-                  シェアする
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  variant={isVisited ? "default" : "outline"}
+                  onClick={toggleVisited}
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  {isVisited ? '行った！' : '行った'}
                 </Button>
               </CardContent>
             </Card>

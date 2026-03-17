@@ -24,18 +24,18 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50 backdrop-blur-lg bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link href="/">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity">
+            <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
               🚃 子鉄スポット帳
             </h1>
           </Link>
-          <nav className="flex gap-4">
+          <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
-              <Button variant="ghost">スポット検索</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">検索</Button>
             </Link>
             <Link href="/mypage">
-              <Button variant="ghost">マイページ</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">マイページ</Button>
             </Link>
           </nav>
         </div>
