@@ -125,6 +125,22 @@ export default function NewSpotPage() {
               />
             </div>
 
+            {/* 近くの施設 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                近くの施設（カンマ区切り）
+              </label>
+              <input
+                type="text"
+                name="facilities"
+                placeholder="例: ショッピングモール,コンビニ,トイレ"
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                選択肢: ショッピングモール / コンビニ / スーパー / カフェ / 飲食店 / トイレ / 自動販売機
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">画像 *</label>
               <input

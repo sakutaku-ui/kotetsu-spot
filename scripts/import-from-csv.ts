@@ -64,7 +64,8 @@ async function importFromCSV() {
         linesStr,
         description,
         imageFileName,
-        safetyNote
+        safetyNote = '',
+        facilitiesStr = '' // 11列目: 近くの施設（オプション）
       ] = columns
       
       console.log(`処理中: ${name}`)
@@ -108,7 +109,12 @@ async function importFromCSV() {
       // 3. 路線を配列に変換
       const linesList = linesStr.split(',').map(l => l.trim()).filter(l => l)
       
-      // 4. Supabaseに登録
+      // 4. 施設を配列に変換
+      const facilitiesList = facilitiesStr && facilitiesStr.trim() !== ''
+        ? facilitiesStr.split(',').map(f => f.trim()).filter(f => f)
+        : []
+      
+      // 5. Supabaseに登録
       const { error: insertError } = await supabase
         .from('spots')
         .insert({
@@ -120,6 +126,7 @@ async function importFromCSV() {
           description: description.trim(),
           place_type: placeType.trim(),
           lines: linesList,
+          facilities: facilitiesList, // 追加
           safety_rank: 5, // 固定値（全て安全と判断したもののみ登録）
           safety_note: safetyNote ? safetyNote.trim() : null,
           image: publicUrl,
@@ -131,6 +138,9 @@ async function importFromCSV() {
         errorCount++
       } else {
         console.log(`  ✅ 登録完了`)
+        if (facilitiesList.length > 0) {
+          console.log(`  📍 施設: ${facilitiesList.join(', ')}`)
+        }
         successCount++
       }
       

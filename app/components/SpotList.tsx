@@ -1,15 +1,15 @@
 'use client'
 
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Spot } from '@/app/data/schema'
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Clock, Heart, Check, Trees, Layers, Zap, X, ChevronDown } from 'lucide-react'
+import { MapPin, Clock, Heart, Check, Trees, Layers, Zap, X, ChevronDown, Store } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 // LINE_GROUP_KEYWORDS
 const LINE_GROUP_KEYWORDS: Record<string, string[]> = {
@@ -21,17 +21,29 @@ const LINE_GROUP_KEYWORDS: Record<string, string[]> = {
   '京浜東北線': ['京浜東北線'],
 }
 
-// よく見る路線
+// 主要路線
 const POPULAR_LINES = ['西武線', '東武線', '東海道線', '中央線', '山手線', '京浜東北線']
 
-// エリアと路線データ
+// エリア
 const AREAS = ['東京', '埼玉', '神奈川', '千葉']
 
+// スポットタイプ
+const PLACE_TYPES = ['公園', '橋', '跨線橋', '展望台', 'その他']
+
+// 路線会社
 const LINE_COMPANIES = {
   'JR東日本': ['山手線', '京浜東北線', '中央線', '総武線', '東海道線', '横須賀線', '湘南新宿ライン'],
   '私鉄': ['西武線', '東武線', '東急線', '京王線', '小田急線'],
   '地下鉄': ['丸ノ内線', '銀座線', '日比谷線', '東西線'],
 }
+
+// こだわりポイント
+const DETAIL_FILTERS = [
+  { id: '駅近', label: '駅近（徒歩5分以内）', icon: MapPin },
+  { id: '複数路線見れる', label: '複数路線が見られる', icon: Layers },
+  { id: '特急・新幹線見れる', label: '特急・新幹線が見られる', icon: Zap },
+  { id: '近くに商業施設', label: '近くに商業施設有', icon: Store },
+]
 
 export function SpotList({ 
   initialSpots, 
@@ -43,12 +55,14 @@ export function SpotList({
   const router = useRouter()
   const [selectedMainLine, setSelectedMainLine] = useState<string>('')
   const [selectedArea, setSelectedArea] = useState<string>(initialArea || '')
+  const [selectedPlaceType, setSelectedPlaceType] = useState<string>('')
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [likedSpots, setLikedSpots] = useState<string[]>([])
   const [visitedSpots, setVisitedSpots] = useState<string[]>([])
   
   // アコーディオン管理
   const [showOtherLines, setShowOtherLines] = useState(false)
+  const [showDetailFilters, setShowDetailFilters] = useState(false)
   const [expandedCompany, setExpandedCompany] = useState<string>('')
 
   // localStorageから復元
@@ -60,14 +74,55 @@ export function SpotList({
     if (savedVisited) setVisitedSpots(JSON.parse(savedVisited))
   }, [])
 
+  // エリアに応じた路線リスト
+  const availableLines = useMemo(() => {
+    if (!selectedArea) return []
+    
+    const areaSpots = initialSpots.filter(spot => spot.area.includes(selectedArea))
+    const linesSet = new Set<string>()
+    
+    areaSpots.forEach(spot => {
+      spot.lines.forEach(line => linesSet.add(line))
+    })
+    
+    return Array.from(linesSet).sort()
+  }, [selectedArea, initialSpots])
+
+  // 主要路線（エリアフィルター適用）
+  const filteredPopularLines = useMemo(() => {
+    if (!selectedArea) return POPULAR_LINES
+    return POPULAR_LINES.filter(line => {
+      const keywords = LINE_GROUP_KEYWORDS[line] || [line]
+      return availableLines.some(availableLine => 
+        keywords.some(keyword => availableLine.includes(keyword))
+      )
+    })
+  }, [selectedArea, availableLines])
+
+  // その他の路線（主要路線を除く）
+  const otherLines = useMemo(() => {
+    if (!selectedArea) return []
+    
+    const popularLineKeywords = POPULAR_LINES.flatMap(line => LINE_GROUP_KEYWORDS[line] || [line])
+    
+    return availableLines.filter(line => 
+      !popularLineKeywords.some(keyword => line.includes(keyword))
+    )
+  }, [selectedArea, availableLines])
+
   // フィルター処理
   const filteredSpots = initialSpots.filter(spot => {
-    // エリアフィルター（部分一致）
+    // エリアフィルター
     if (selectedArea && !spot.area.includes(selectedArea)) {
       return false
     }
     
-    // 路線フィルター（グループキーワード対応）
+    // スポットタイプフィルター
+    if (selectedPlaceType && spot.placeType !== selectedPlaceType) {
+      return false
+    }
+    
+    // 路線フィルター
     if (selectedMainLine) {
       const keywords = LINE_GROUP_KEYWORDS[selectedMainLine] || [selectedMainLine]
       const hasMatch = spot.lines.some(line => 
@@ -79,11 +134,8 @@ export function SpotList({
       }
     }
     
-    // 条件フィルター（AND検索）
+    // こだわりポイントフィルター
     if (selectedFilters.includes('駅近') && spot.walkMinutes > 5) {
-      return false
-    }
-    if (selectedFilters.includes('公園あり') && spot.placeType !== '公園') {
       return false
     }
     if (selectedFilters.includes('複数路線見れる') && spot.lines.length <= 1) {
@@ -92,9 +144,14 @@ export function SpotList({
     if (selectedFilters.includes('特急・新幹線見れる') && !spot.lines.some(line => line.includes('新幹線') || line.includes('特急'))) {
       return false
     }
-    
-    return true
-  })
+    if (selectedFilters.includes('近くに商業施設') && 
+        (!spot.facilities || !spot.facilities.some(f => 
+          ['ショッピングモール', 'スーパー', 'コンビニ'].includes(f)
+        ))) {
+          return false
+        }    
+      return true
+    })
 
   // フィルタートグル
   const toggleFilter = (filter: string) => {
@@ -123,12 +180,13 @@ export function SpotList({
 
   const clearAllFilters = () => {
     setSelectedArea('')
+    setSelectedPlaceType('')
     setSelectedMainLine('')
     setSelectedFilters([])
     setExpandedCompany('')
   }
 
-  const hasActiveFilters = selectedArea || selectedMainLine || selectedFilters.length > 0
+  const hasActiveFilters = selectedArea || selectedPlaceType || selectedMainLine || selectedFilters.length > 0
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -182,7 +240,10 @@ export function SpotList({
                     key={area}
                     variant={selectedArea === area ? "default" : "outline"}
                     className="cursor-pointer px-4 py-2 text-sm"
-                    onClick={() => setSelectedArea(selectedArea === area ? '' : area)}
+                    onClick={() => {
+                      setSelectedArea(selectedArea === area ? '' : area)
+                      setSelectedMainLine('') // 路線選択をリセット
+                    }}
                   >
                     {area}
                   </Badge>
@@ -192,48 +253,59 @@ export function SpotList({
 
             <Separator />
 
-            {/* よく見る路線 */}
+            {/* スポットタイプ */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">よく見る路線</h3>
+              <h3 className="text-sm font-semibold mb-3">スポットタイプ</h3>
               <div className="flex flex-wrap gap-2">
-                {POPULAR_LINES.map(line => (
+                {PLACE_TYPES.map(type => (
                   <Badge
-                    key={line}
-                    variant={selectedMainLine === line ? "default" : "outline"}
+                    key={type}
+                    variant={selectedPlaceType === type ? "default" : "outline"}
                     className="cursor-pointer px-4 py-2 text-sm"
-                    onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
+                    onClick={() => setSelectedPlaceType(selectedPlaceType === type ? '' : type)}
                   >
-                    {line}
+                    {type}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            {/* その他の路線（アコーディオン） */}
-            <div>
-              <button
-                onClick={() => setShowOtherLines(!showOtherLines)}
-                className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                <ChevronDown className={`w-4 h-4 transition-transform ${showOtherLines ? 'rotate-180' : ''}`} />
-                その他の路線
-              </button>
-              
-              {showOtherLines && (
-                <div className="mt-4 space-y-2 pl-4 border-l-2 border-gray-200">
-                  {Object.entries(LINE_COMPANIES).map(([company, lines]) => (
-                    <div key={company}>
-                      <button
-                        onClick={() => setExpandedCompany(expandedCompany === company ? '' : company)}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            <Separator />
+
+            {/* 主要路線（エリア選択時のみ表示） */}
+            {selectedArea && filteredPopularLines.length > 0 && (
+              <>
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">主要路線</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {filteredPopularLines.map(line => (
+                      <Badge
+                        key={line}
+                        variant={selectedMainLine === line ? "default" : "outline"}
+                        className="cursor-pointer px-4 py-2 text-sm"
+                        onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
                       >
-                        <ChevronDown className={`w-3 h-3 transition-transform ${expandedCompany === company ? 'rotate-180' : ''}`} />
-                        {company}
-                      </button>
-                      
-                      {expandedCompany === company && (
-                        <div className="mt-2 ml-5 flex flex-wrap gap-2">
-                          {lines.map(line => (
+                        {line}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* その他の路線（アコーディオン） */}
+                {otherLines.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setShowOtherLines(!showOtherLines)}
+                      className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors"
+                    >
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showOtherLines ? 'rotate-180' : ''}`} />
+                      その他の路線
+                    </button>
+                    
+                    {showOtherLines && (
+                      <div className="mt-4 pl-4 border-l-2 border-gray-200">
+                        <div className="flex flex-wrap gap-2">
+                          {otherLines.map(line => (
                             <Badge
                               key={line}
                               variant={selectedMainLine === line ? "default" : "outline"}
@@ -244,59 +316,82 @@ export function SpotList({
                             </Badge>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <Separator />
+              </>
+            )}
+
+            {/* こだわりポイント（アコーディオン） */}
+            <div>
+              <button
+                onClick={() => setShowDetailFilters(!showDetailFilters)}
+                className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors w-full"
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform ${showDetailFilters ? 'rotate-180' : ''}`} />
+                <span>こだわりポイントの追加</span>
+                {selectedFilters.length > 0 && (
+                  <Badge variant="default" className="ml-2">
+                    {selectedFilters.length}件
+                  </Badge>
+                )}
+              </button>
+              
+              {showDetailFilters && (
+                <div className="mt-4 pl-4 border-l-2 border-blue-200 bg-blue-50/30 p-4 rounded-r-lg">
+                  <div className="flex flex-wrap gap-2">
+                    {DETAIL_FILTERS.map(filter => {
+                      const Icon = filter.icon
+                      return (
+                        <Badge
+                          key={filter.id}
+                          variant={selectedFilters.includes(filter.id) ? "default" : "outline"}
+                          className="cursor-pointer px-3 py-2 text-sm"
+                          onClick={() => toggleFilter(filter.id)}
+                        >
+                          <Icon className="w-3.5 h-3.5 mr-1" />
+                          {filter.label}
+                        </Badge>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
-            </div>
-
-            <Separator />
-
-            {/* 条件 */}
-            <div>
-              <h3 className="text-sm font-semibold mb-3">条件</h3>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={selectedFilters.includes('駅近') ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-2 text-sm"
-                  onClick={() => toggleFilter('駅近')}
-                >
-                  <MapPin className="w-3.5 h-3.5 mr-1" />
-                  駅近
-                </Badge>
-                <Badge
-                  variant={selectedFilters.includes('公園あり') ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-2 text-sm"
-                  onClick={() => toggleFilter('公園あり')}
-                >
-                  <Trees className="w-3.5 h-3.5 mr-1" />
-                  公園あり
-                </Badge>
-                <Badge
-                  variant={selectedFilters.includes('複数路線見れる') ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-2 text-sm"
-                  onClick={() => toggleFilter('複数路線見れる')}
-                >
-                  <Layers className="w-3.5 h-3.5 mr-1" />
-                  複数路線
-                </Badge>
-                <Badge
-                  variant={selectedFilters.includes('特急・新幹線見れる') ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-2 text-sm"
-                  onClick={() => toggleFilter('特急・新幹線見れる')}
-                >
-                  <Zap className="w-3.5 h-3.5 mr-1" />
-                  特急・新幹線
-                </Badge>
-              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* スポット数 */}
-        <div className="text-sm text-muted-foreground">
-          {filteredSpots.length}件のスポットが見つかりました
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {filteredSpots.length}件のスポットが見つかりました
+          </div>
+          {hasActiveFilters && (
+            <div className="flex flex-wrap gap-2">
+              {selectedArea && (
+                <Badge variant="secondary" className="text-xs">
+                  {selectedArea}
+                </Badge>
+              )}
+              {selectedPlaceType && (
+                <Badge variant="secondary" className="text-xs">
+                  {selectedPlaceType}
+                </Badge>
+              )}
+              {selectedMainLine && (
+                <Badge variant="secondary" className="text-xs">
+                  {selectedMainLine}
+                </Badge>
+              )}
+              {selectedFilters.map(filter => (
+                <Badge key={filter} variant="secondary" className="text-xs">
+                  {DETAIL_FILTERS.find(f => f.id === filter)?.label}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* スポットグリッド */}
