@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Heart, Check, BookOpen, MapPin, Clock } from 'lucide-react'
 import Image from 'next/image'
+import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 
 // Spot型（簡易版）
@@ -60,10 +61,20 @@ export default function MyPage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-10 backdrop-blur-lg bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/">
-            <h1 className="text-2xl font-bold text-blue-600">🚃 子鉄スポット帳</h1>
+            <h1 className="text-2xl font-bold text-blue-600 cursor-pointer hover:opacity-80 transition-opacity">
+              🚃 子鉄スポット帳
+            </h1>
           </Link>
+          <nav className="flex gap-4">
+            <Link href="/spots">
+              <Button variant="ghost">スポット検索</Button>
+            </Link>
+            <Link href="/mypage">
+              <Button variant="ghost">マイページ</Button>
+            </Link>
+          </nav>
         </div>
       </header>
 
