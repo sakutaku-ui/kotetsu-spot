@@ -410,12 +410,10 @@ export function SpotList({
             <Card 
               key={spot.id}
               className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+              onClick={() => router.push(`/spot/${spot.id}`)}
             >
               {/* 画像 */}
-              <div 
-                className="relative aspect-video overflow-hidden bg-gray-100"
-                onClick={() => router.push(`/spot/${spot.id}`)}
-              >
+              <div className="relative aspect-video overflow-hidden bg-gray-100">
                 <Image 
                   src={spot.image} 
                   alt={spot.name}
@@ -432,7 +430,7 @@ export function SpotList({
               </div>
 
               <CardHeader className="pb-3">
-                <div onClick={() => router.push(`/spot/${spot.id}`)}>
+                <div>
                   <h3 className="font-bold text-lg line-clamp-2 group-hover:text-blue-600 transition-colors">
                     {spot.name}
                   </h3>
