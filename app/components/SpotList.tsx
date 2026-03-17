@@ -33,11 +33,17 @@ const LINE_COMPANIES = {
   '地下鉄': ['丸ノ内線', '銀座線', '日比谷線', '東西線'],
 }
 
-export function SpotList({ initialSpots }: { initialSpots: Spot[] }) {
+export function SpotList({ 
+  initialSpots, 
+  initialArea 
+}: { 
+  initialSpots: Spot[]
+  initialArea?: string
+}) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'parent' | 'child'>('parent')
   const [selectedMainLine, setSelectedMainLine] = useState<string>('')
-  const [selectedArea, setSelectedArea] = useState<string>('')
+  const [selectedArea, setSelectedArea] = useState<string>(initialArea || '')
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [likedSpots, setLikedSpots] = useState<string[]>([])
   const [visitedSpots, setVisitedSpots] = useState<string[]>([])
