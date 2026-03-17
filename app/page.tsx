@@ -24,10 +24,18 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50 backdrop-blur-lg bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             🚃 子鉄スポット帳
           </h1>
+          <nav className="flex gap-4">
+            <Link href="/spots">
+              <Button variant="ghost">スポット検索</Button>
+            </Link>
+            <Link href="/mypage">
+              <Button variant="ghost">マイページ</Button>
+            </Link>
+          </nav>
         </div>
       </header>
 

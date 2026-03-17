@@ -6,7 +6,6 @@ import { Spot } from '@/app/data/schema'
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { MapPin, Clock, Heart, Check, Trees, Layers, Zap, X, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
@@ -41,14 +40,11 @@ export function SpotList({
   initialArea?: string
 }) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'parent' | 'child'>('parent')
   const [selectedMainLine, setSelectedMainLine] = useState<string>('')
   const [selectedArea, setSelectedArea] = useState<string>(initialArea || '')
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [likedSpots, setLikedSpots] = useState<string[]>([])
   const [visitedSpots, setVisitedSpots] = useState<string[]>([])
-  const [stampedSpots, setStampedSpots] = useState<string[]>([])
-  const [animatingStamp, setAnimatingStamp] = useState<string | null>(null)
   
   // アコーディオン管理
   const [showOtherLines, setShowOtherLines] = useState(false)
@@ -58,11 +54,9 @@ export function SpotList({
   useEffect(() => {
     const savedLiked = localStorage.getItem('likedSpots')
     const savedVisited = localStorage.getItem('visitedSpots')
-    const savedStamped = localStorage.getItem('stampedSpots')
     
     if (savedLiked) setLikedSpots(JSON.parse(savedLiked))
     if (savedVisited) setVisitedSpots(JSON.parse(savedVisited))
-    if (savedStamped) setStampedSpots(JSON.parse(savedStamped))
   }, [])
 
   // フィルター処理
@@ -126,17 +120,6 @@ export function SpotList({
     })
   }
 
-  // スタンプトグル
-  const toggleStamp = (id: string) => {
-    setAnimatingStamp(id)
-    setStampedSpots(prev => {
-      const newStamped = prev.includes(id) ? prev.filter(spotId => spotId !== id) : [...prev, id]
-      localStorage.setItem('stampedSpots', JSON.stringify(newStamped))
-      return newStamped
-    })
-    setTimeout(() => setAnimatingStamp(null), 300)
-  }
-
   const clearAllFilters = () => {
     setSelectedArea('')
     setSelectedMainLine('')
@@ -146,354 +129,285 @@ export function SpotList({
 
   const hasActiveFilters = selectedArea || selectedMainLine || selectedFilters.length > 0
 
-  const visitedSpotsList = initialSpots.filter(spot => visitedSpots.includes(spot.id))
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm sticky top-0 z-10 border-b">
+      <header className="bg-white shadow-sm sticky top-0 z-10 border-b backdrop-blur-lg bg-white/90">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-blue-600 text-center">🚃 子鉄スポット帳</h1>
         </div>
       </header>
 
       {/* コンテンツ */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'parent' | 'child')}>
-          <TabsList className="grid w-full grid-cols-2 mb-6 h-auto p-1.5 gap-2 bg-blue-100 rounded-2xl">
-            <TabsTrigger
-              value="parent"
-              className="flex flex-col items-center gap-1 py-3 rounded-xl text-sm font-bold
-                !text-blue-400 !bg-transparent !border-0 !shadow-none
-                data-[state=active]:!bg-blue-500 data-[state=active]:!text-white data-[state=active]:!shadow-md"
-            >
-              <span className="text-2xl">🚃</span>
-              スポット一覧
-            </TabsTrigger>
-            <TabsTrigger
-              value="child"
-              className="flex flex-col items-center gap-1 py-3 rounded-xl text-sm font-bold
-                !text-yellow-500 !bg-transparent !border-0 !shadow-none
-                data-[state=active]:!bg-yellow-400 data-[state=active]:!text-yellow-900 data-[state=active]:!shadow-md"
-            >
-              <span className="text-2xl">📖</span>
-              スタンプ帳
-            </TabsTrigger>
-          </TabsList>
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* フィルター */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">絞り込み検索</h2>
+              {hasActiveFilters && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  クリア
+                </Button>
+              )}
+            </div>
+          </CardHeader>
 
-          {/* スポット一覧タブ */}
-          <TabsContent value="parent" className="space-y-6">
-            {/* フィルター */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">絞り込み検索</h2>
-                  {hasActiveFilters && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={clearAllFilters}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      クリア
-                    </Button>
-                  )}
+          <CardContent className="space-y-6">
+            {/* エリア */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3">エリア</h3>
+              <div className="flex flex-wrap gap-2">
+                {AREAS.map(area => (
+                  <Badge
+                    key={area}
+                    variant={selectedArea === area ? "default" : "outline"}
+                    className="cursor-pointer px-4 py-2 text-sm"
+                    onClick={() => setSelectedArea(selectedArea === area ? '' : area)}
+                  >
+                    {area}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* よく見る路線 */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3">よく見る路線</h3>
+              <div className="flex flex-wrap gap-2">
+                {POPULAR_LINES.map(line => (
+                  <Badge
+                    key={line}
+                    variant={selectedMainLine === line ? "default" : "outline"}
+                    className="cursor-pointer px-4 py-2 text-sm"
+                    onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
+                  >
+                    {line}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* その他の路線（アコーディオン） */}
+            <div>
+              <button
+                onClick={() => setShowOtherLines(!showOtherLines)}
+                className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform ${showOtherLines ? 'rotate-180' : ''}`} />
+                その他の路線
+              </button>
+              
+              {showOtherLines && (
+                <div className="mt-4 space-y-2 pl-4 border-l-2 border-gray-200">
+                  {Object.entries(LINE_COMPANIES).map(([company, lines]) => (
+                    <div key={company}>
+                      <button
+                        onClick={() => setExpandedCompany(expandedCompany === company ? '' : company)}
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                      >
+                        <ChevronDown className={`w-3 h-3 transition-transform ${expandedCompany === company ? 'rotate-180' : ''}`} />
+                        {company}
+                      </button>
+                      
+                      {expandedCompany === company && (
+                        <div className="mt-2 ml-5 flex flex-wrap gap-2">
+                          {lines.map(line => (
+                            <Badge
+                              key={line}
+                              variant={selectedMainLine === line ? "default" : "outline"}
+                              className="cursor-pointer px-3 py-1.5 text-xs"
+                              onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
+                            >
+                              {line}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* 条件 */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3">条件</h3>
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant={selectedFilters.includes('駅近') ? "default" : "outline"}
+                  className="cursor-pointer px-3 py-2 text-sm"
+                  onClick={() => toggleFilter('駅近')}
+                >
+                  <MapPin className="w-3.5 h-3.5 mr-1" />
+                  駅近
+                </Badge>
+                <Badge
+                  variant={selectedFilters.includes('公園あり') ? "default" : "outline"}
+                  className="cursor-pointer px-3 py-2 text-sm"
+                  onClick={() => toggleFilter('公園あり')}
+                >
+                  <Trees className="w-3.5 h-3.5 mr-1" />
+                  公園あり
+                </Badge>
+                <Badge
+                  variant={selectedFilters.includes('複数路線見れる') ? "default" : "outline"}
+                  className="cursor-pointer px-3 py-2 text-sm"
+                  onClick={() => toggleFilter('複数路線見れる')}
+                >
+                  <Layers className="w-3.5 h-3.5 mr-1" />
+                  複数路線
+                </Badge>
+                <Badge
+                  variant={selectedFilters.includes('特急・新幹線見れる') ? "default" : "outline"}
+                  className="cursor-pointer px-3 py-2 text-sm"
+                  onClick={() => toggleFilter('特急・新幹線見れる')}
+                >
+                  <Zap className="w-3.5 h-3.5 mr-1" />
+                  特急・新幹線
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* スポット数 */}
+        <div className="text-sm text-muted-foreground">
+          {filteredSpots.length}件のスポットが見つかりました
+        </div>
+
+        {/* スポットグリッド */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredSpots.map(spot => (
+            <Card 
+              key={spot.id}
+              className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+            >
+              {/* 画像 */}
+              <div 
+                className="relative aspect-video overflow-hidden bg-gray-100"
+                onClick={() => router.push(`/spot/${spot.id}`)}
+              >
+                <Image 
+                  src={spot.image} 
+                  alt={spot.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                
+                {/* エリアバッジ */}
+                <div className="absolute top-3 right-3">
+                  <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
+                    {spot.area}
+                  </Badge>
+                </div>
+              </div>
+
+              <CardHeader className="pb-3">
+                <div onClick={() => router.push(`/spot/${spot.id}`)}>
+                  <h3 className="font-bold text-lg line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {spot.name}
+                  </h3>
+                  
+                  {/* アクセス情報 */}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{spot.station}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>徒歩{spot.walkMinutes}分</span>
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-6">
-                {/* エリア */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-3">エリア</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {AREAS.map(area => (
-                      <Badge
-                        key={area}
-                        variant={selectedArea === area ? "default" : "outline"}
-                        className="cursor-pointer px-4 py-2 text-sm"
-                        onClick={() => setSelectedArea(selectedArea === area ? '' : area)}
-                      >
-                        {area}
-                      </Badge>
-                    ))}
-                  </div>
+              <CardContent className="pb-3">
+                {/* タグ */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {spot.walkMinutes <= 5 && (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      駅近
+                    </Badge>
+                  )}
+                  {spot.placeType === '公園' && (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      公園
+                    </Badge>
+                  )}
+                  {spot.lines.length > 1 && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      複数路線
+                    </Badge>
+                  )}
                 </div>
 
-                <Separator />
-
-                {/* よく見る路線 */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-3">よく見る路線</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {POPULAR_LINES.map(line => (
-                      <Badge
-                        key={line}
-                        variant={selectedMainLine === line ? "default" : "outline"}
-                        className="cursor-pointer px-4 py-2 text-sm"
-                        onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
-                      >
+                {/* 路線 */}
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">見れる路線</p>
+                  <div className="flex flex-wrap gap-1">
+                    {spot.lines.slice(0, 3).map((line, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
                         {line}
                       </Badge>
                     ))}
-                  </div>
-                </div>
-
-                {/* その他の路線（アコーディオン） */}
-                <div>
-                  <button
-                    onClick={() => setShowOtherLines(!showOtherLines)}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors"
-                  >
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showOtherLines ? 'rotate-180' : ''}`} />
-                    その他の路線
-                  </button>
-                  
-                  {showOtherLines && (
-                    <div className="mt-4 space-y-2 pl-4 border-l-2 border-gray-200">
-                      {Object.entries(LINE_COMPANIES).map(([company, lines]) => (
-                        <div key={company}>
-                          <button
-                            onClick={() => setExpandedCompany(expandedCompany === company ? '' : company)}
-                            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                          >
-                            <ChevronDown className={`w-3 h-3 transition-transform ${expandedCompany === company ? 'rotate-180' : ''}`} />
-                            {company}
-                          </button>
-                          
-                          {expandedCompany === company && (
-                            <div className="mt-2 ml-5 flex flex-wrap gap-2">
-                              {lines.map(line => (
-                                <Badge
-                                  key={line}
-                                  variant={selectedMainLine === line ? "default" : "outline"}
-                                  className="cursor-pointer px-3 py-1.5 text-xs"
-                                  onClick={() => setSelectedMainLine(selectedMainLine === line ? '' : line)}
-                                >
-                                  {line}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* 条件 */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-3">条件</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge
-                      variant={selectedFilters.includes('駅近') ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-2 text-sm"
-                      onClick={() => toggleFilter('駅近')}
-                    >
-                      <MapPin className="w-3.5 h-3.5 mr-1" />
-                      駅近
-                    </Badge>
-                    <Badge
-                      variant={selectedFilters.includes('公園あり') ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-2 text-sm"
-                      onClick={() => toggleFilter('公園あり')}
-                    >
-                      <Trees className="w-3.5 h-3.5 mr-1" />
-                      公園あり
-                    </Badge>
-                    <Badge
-                      variant={selectedFilters.includes('複数路線見れる') ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-2 text-sm"
-                      onClick={() => toggleFilter('複数路線見れる')}
-                    >
-                      <Layers className="w-3.5 h-3.5 mr-1" />
-                      複数路線
-                    </Badge>
-                    <Badge
-                      variant={selectedFilters.includes('特急・新幹線見れる') ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-2 text-sm"
-                      onClick={() => toggleFilter('特急・新幹線見れる')}
-                    >
-                      <Zap className="w-3.5 h-3.5 mr-1" />
-                      特急・新幹線
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* スポット数 */}
-            <div className="text-sm text-muted-foreground">
-              {filteredSpots.length}件のスポットが見つかりました
-            </div>
-
-            {/* スポットグリッド */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredSpots.map(spot => (
-                <Card 
-                  key={spot.id}
-                  className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
-                >
-                  {/* 画像 */}
-                  <div 
-                    className="relative aspect-video overflow-hidden bg-gray-100"
-                    onClick={() => router.push(`/spot/${spot.id}`)}
-                  >
-                    <Image 
-                      src={spot.image} 
-                      alt={spot.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    
-                    {/* エリアバッジ */}
-                    <div className="absolute top-3 right-3">
-                      <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
-                        {spot.area}
+                    {spot.lines.length > 3 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{spot.lines.length - 3}
                       </Badge>
-                    </div>
+                    )}
                   </div>
-
-                  <CardHeader className="pb-3">
-                    <div onClick={() => router.push(`/spot/${spot.id}`)}>
-                      <h3 className="font-bold text-lg line-clamp-2 group-hover:text-blue-600 transition-colors">
-                        {spot.name}
-                      </h3>
-                      
-                      {/* アクセス情報 */}
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{spot.station}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>徒歩{spot.walkMinutes}分</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pb-3">
-                    {/* タグ */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {spot.walkMinutes <= 5 && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          駅近
-                        </Badge>
-                      )}
-                      {spot.placeType === '公園' && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          公園
-                        </Badge>
-                      )}
-                      {spot.lines.length > 1 && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          複数路線
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* 路線 */}
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">見れる路線</p>
-                      <div className="flex flex-wrap gap-1">
-                        {spot.lines.slice(0, 3).map((line, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {line}
-                          </Badge>
-                        ))}
-                        {spot.lines.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{spot.lines.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="pt-0 gap-2">
-                    <Button
-                      variant={likedSpots.includes(spot.id) ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleLike(spot.id)
-                      }}
-                    >
-                      <Heart className={`w-4 h-4 mr-1 ${likedSpots.includes(spot.id) ? 'fill-current' : ''}`} />
-                      いいね
-                    </Button>
-                    <Button
-                      variant={visitedSpots.includes(spot.id) ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleVisited(spot.id)
-                      }}
-                    >
-                      <Check className="w-4 h-4 mr-1" />
-                      行った
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-
-            {/* 検索結果なし */}
-            {filteredSpots.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-xl text-gray-500">条件に合うスポットが見つかりませんでした</p>
-                <p className="text-sm text-gray-400 mt-2">条件を変更してみてください</p>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* スタンプ帳タブ */}
-          <TabsContent value="child">
-            <Card>
-              <CardHeader>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-yellow-600">{visitedSpots.length}こ いったよ！</p>
                 </div>
-              </CardHeader>
-
-              <CardContent>
-                {visitedSpotsList.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    {visitedSpotsList.map(spot => (
-                      <div key={spot.id} className="p-6 rounded-lg bg-yellow-50 border-2 border-yellow-200">
-                        <p className="text-lg font-bold text-gray-800 mb-4 text-center">{spot.name}</p>
-                        <button onClick={() => toggleStamp(spot.id)} className="w-full flex justify-center">
-                          <div className={`relative w-32 h-32 transition-all duration-300 ${animatingStamp === spot.id ? 'scale-125' : 'scale-100 hover:scale-110'}`}>
-                            <Image
-                              src={stampedSpots.includes(spot.id) ? '/stamps/stamped.png' : '/stamps/hanko.png'}
-                              alt={stampedSpots.includes(spot.id) ? 'スタンプ済み' : 'スタンプ'}
-                              fill
-                              className="object-contain"
-                            />
-                          </div>
-                        </button>
-                        <p className="text-center text-sm text-gray-600 mt-2">
-                          {stampedSpots.includes(spot.id) ? 'スタンプ済み' : 'タップしてスタンプ'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-xl text-gray-500">まだ行った場所がないよ！</p>
-                    <p className="text-sm text-gray-400 mt-2">スポット一覧で「行った」を押してね</p>
-                  </div>
-                )}
               </CardContent>
+
+              <CardFooter className="pt-0 gap-2">
+                <Button
+                  variant={likedSpots.includes(spot.id) ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleLike(spot.id)
+                  }}
+                >
+                  <Heart className={`w-4 h-4 mr-1 ${likedSpots.includes(spot.id) ? 'fill-current' : ''}`} />
+                  いいね
+                </Button>
+                <Button
+                  variant={visitedSpots.includes(spot.id) ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleVisited(spot.id)
+                  }}
+                >
+                  <Check className="w-4 h-4 mr-1" />
+                  行った
+                </Button>
+              </CardFooter>
             </Card>
-          </TabsContent>
-        </Tabs>
+          ))}
+        </div>
+
+        {/* 検索結果なし */}
+        {filteredSpots.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-500">条件に合うスポットが見つかりませんでした</p>
+            <p className="text-sm text-gray-400 mt-2">条件を変更してみてください</p>
+          </div>
+        )}
       </div>
     </div>
   )
