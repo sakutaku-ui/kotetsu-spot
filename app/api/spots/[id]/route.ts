@@ -3,9 +3,10 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const spot = await getSpotById(params.id)
+  const { id } = await params
+  const spot = await getSpotById(id)
   
   if (!spot) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
