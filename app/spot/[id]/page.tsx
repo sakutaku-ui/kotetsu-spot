@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getSpotById } from '@/app/data/spots'
+import { use, useEffect, useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,28 +10,42 @@ import {
   Clock, 
   Tag, 
   Shield, 
-  ArrowLeft, 
   Navigation,
-  Train
+  Train,
+  Heart,
+  Check
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { Heart, Check } from 'lucide-react'
+
+type Spot = {
+  id: string
+  name: string
+  area: string
+  station: string
+  walkMinutes: number
+  address: string
+  description: string
+  placeType: string
+  lines: string[]
+  safetyNote?: string
+  image: string
+}
 
 export default function SpotDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const [spot, setSpot] = useState<any>(null)
+  const { id } = use(params)
+  const [spot, setSpot] = useState<Spot | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [isVisited, setIsVisited] = useState(false)
 
   useEffect(() => {
     // スポットデータを取得
     async function loadSpot() {
-      const response = await fetch(`/api/spots/${params.id}`)
+      const response = await fetch(`/api/spots/${id}`)
       const data = await response.json()
       setSpot(data)
     }
@@ -43,23 +56,23 @@ export default function SpotDetailPage({
     
     if (savedLiked) {
       const liked = JSON.parse(savedLiked)
-      setIsLiked(liked.includes(params.id))
+      setIsLiked(liked.includes(id))
     }
     if (savedVisited) {
       const visited = JSON.parse(savedVisited)
-      setIsVisited(visited.includes(params.id))
+      setIsVisited(visited.includes(id))
     }
     
     loadSpot()
-  }, [params.id])
+  }, [id])
 
   const toggleLike = () => {
     const savedLiked = localStorage.getItem('likedSpots')
     const liked = savedLiked ? JSON.parse(savedLiked) : []
     
     const newLiked = isLiked 
-      ? liked.filter((id: string) => id !== params.id)
-      : [...liked, params.id]
+      ? liked.filter((spotId: string) => spotId !== id)
+      : [...liked, id]
     
     localStorage.setItem('likedSpots', JSON.stringify(newLiked))
     setIsLiked(!isLiked)
@@ -70,19 +83,22 @@ export default function SpotDetailPage({
     const visited = savedVisited ? JSON.parse(savedVisited) : []
     
     const newVisited = isVisited
-      ? visited.filter((id: string) => id !== params.id)
-      : [...visited, params.id]
+      ? visited.filter((spotId: string) => spotId !== id)
+      : [...visited, id]
     
     localStorage.setItem('visitedSpots', JSON.stringify(newVisited))
     setIsVisited(!isVisited)
   }
 
   if (!spot) {
-    return <div className="min-h-screen flex items-center justify-center">読み込み中...</div>
-  }
-
-  if (!spot) {
-    notFound()
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
