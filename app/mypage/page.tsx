@@ -9,17 +9,9 @@ import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 import { Header } from '@/app/components/Header'
-
-// Spot型（簡易版）
-type Spot = {
-  id: string
-  name: string
-  area: string
-  station: string
-  walkMinutes: number
-  image: string
-  lines: string[]
-}
+import { Footer } from '@/app/components/Footer'
+import { SpotCard } from '@/app/components/SpotCard'
+import { Spot } from '@/app/data/schema'
 
 export default function MyPage() {
   const [likedSpots, setLikedSpots] = useState<string[]>([])
@@ -106,40 +98,9 @@ export default function MyPage() {
                 {likedSpotsList.length > 0 ? (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {likedSpotsList.map(spot => (
-                      <Link key={spot.id} href={`/spot/${spot.id}`}>
-                        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group cursor-pointer">
-                          <div className="relative aspect-video overflow-hidden bg-gray-100">
-                            <Image
-                              src={spot.image}
-                              alt={spot.name}
-                              fill
-                              className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute top-3 right-3">
-                              <Badge className="bg-white/90 backdrop-blur-sm text-gray-800 border-0">
-                                {spot.area}
-                              </Badge>
-                            </div>
-                          </div>
-                          <CardContent className="p-5">
-                            <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {spot.name}
-                            </h3>
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <MapPin className="w-4 h-4 text-blue-500" />
-                                <span>{spot.station}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Clock className="w-4 h-4 text-blue-500" />
-                                <span>徒歩{spot.walkMinutes}分</span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                      <SpotCard key={spot.id} spot={spot} />
                     ))}
-                  </div>
+                  </div>                  
                 ) : (
                   <div className="text-center py-12">
                     <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -161,40 +122,9 @@ export default function MyPage() {
                 {visitedSpotsList.length > 0 ? (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {visitedSpotsList.map(spot => (
-                      <Link key={spot.id} href={`/spot/${spot.id}`}>
-                        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group cursor-pointer">
-                          <div className="relative aspect-video overflow-hidden bg-gray-100">
-                            <Image
-                              src={spot.image}
-                              alt={spot.name}
-                              fill
-                              className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute top-3 right-3">
-                              <Badge className="bg-white/90 backdrop-blur-sm text-gray-800 border-0">
-                                {spot.area}
-                              </Badge>
-                            </div>
-                          </div>
-                          <CardContent className="p-5">
-                            <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {spot.name}
-                            </h3>
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <MapPin className="w-4 h-4 text-blue-500" />
-                                <span>{spot.station}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Clock className="w-4 h-4 text-blue-500" />
-                                <span>徒歩{spot.walkMinutes}分</span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                      <SpotCard key={spot.id} spot={spot} />
                     ))}
-                  </div>
+                  </div>                  
                 ) : (
                   <div className="text-center py-12">
                     <Check className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -248,6 +178,7 @@ export default function MyPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </div>
   )
 }

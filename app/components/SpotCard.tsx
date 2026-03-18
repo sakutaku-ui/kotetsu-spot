@@ -9,17 +9,21 @@ import { Spot } from '@/app/data/schema'
 
 interface SpotCardProps {
   spot: Spot
-  isLiked: boolean
-  isVisited: boolean
-  onLike: () => void
-  onVisited: () => void
-  onClick: () => void
+  showNewBadge?: boolean
+  showActions?: boolean
+  isLiked?: boolean
+  isVisited?: boolean
+  onLike?: () => void
+  onVisited?: () => void
+  onClick?: () => void
 }
 
 export function SpotCard({ 
   spot, 
-  isLiked, 
-  isVisited, 
+  showNewBadge = false,
+  showActions = true,
+  isLiked = false, 
+  isVisited = false, 
   onLike, 
   onVisited, 
   onClick 
@@ -38,6 +42,15 @@ export function SpotCard({
           className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
         
+        {/* NEWバッジ */}
+        {showNewBadge && (
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-purple-500 text-white border-0">
+              NEW
+            </Badge>
+          </div>
+        )}
+        
         {/* エリアバッジ */}
         <div className="absolute top-3 right-3">
           <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
@@ -47,18 +60,20 @@ export function SpotCard({
       </div>
 
       <CardHeader className="pb-3">
-        <h3 className="font-bold text-lg line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <h3 className={`font-bold text-lg line-clamp-2 transition-colors ${
+          showNewBadge ? 'group-hover:text-purple-600' : 'group-hover:text-blue-600'
+        }`}>
           {spot.name}
         </h3>
         
         {/* アクセス情報 */}
         <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
           <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
+            <MapPin className={`w-4 h-4 ${showNewBadge ? 'text-purple-500' : ''}`} />
             <span>{spot.station}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+            <Clock className={`w-4 h-4 ${showNewBadge ? 'text-purple-500' : ''}`} />
             <span>徒歩{spot.walkMinutes}分</span>
           </div>
         </div>
@@ -102,32 +117,35 @@ export function SpotCard({
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0 gap-2">
-        <Button
-          variant={isLiked ? "default" : "outline"}
-          size="sm"
-          className="flex-1"
-          onClick={(e) => {
-            e.stopPropagation()
-            onLike()
-          }}
-        >
-          <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-          いいね
-        </Button>
-        <Button
-          variant={isVisited ? "default" : "outline"}
-          size="sm"
-          className="flex-1"
-          onClick={(e) => {
-            e.stopPropagation()
-            onVisited()
-          }}
-        >
-          <Check className="w-4 h-4 mr-1" />
-          行った
-        </Button>
-      </CardFooter>
+      {/* アクションボタン（オプション） */}
+      {showActions && (
+        <CardFooter className="pt-0 gap-2">
+          <Button
+            variant={isLiked ? "default" : "outline"}
+            size="sm"
+            className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation()
+              onLike?.()
+            }}
+          >
+            <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
+            いいね
+          </Button>
+          <Button
+            variant={isVisited ? "default" : "outline"}
+            size="sm"
+            className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation()
+              onVisited?.()
+            }}
+          >
+            <Check className="w-4 h-4 mr-1" />
+            行った
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

@@ -11,6 +11,7 @@ import { MapPin, Clock, Heart, Check, Trees, Layers, Zap, X, ChevronDown, Store 
 import Image from 'next/image'
 import Link from 'next/link'
 import { Header } from '@/app/components/Header'
+import { SpotCard } from '@/app/components/SpotCard'
 
 // LINE_GROUP_KEYWORDS
 const LINE_GROUP_KEYWORDS: Record<string, string[]> = {
@@ -391,116 +392,18 @@ export function SpotList({
         {/* スポットグリッド */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredSpots.map(spot => (
-            <Card 
+            <SpotCard
               key={spot.id}
-              className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+              spot={spot}
+              isLiked={likedSpots.includes(spot.id)}
+              isVisited={visitedSpots.includes(spot.id)}
+              onLike={() => toggleLike(spot.id)}
+              onVisited={() => toggleVisited(spot.id)}
               onClick={() => router.push(`/spot/${spot.id}`)}
-            >
-              {/* 画像 */}
-              <div className="relative aspect-video overflow-hidden bg-gray-100">
-                <Image 
-                  src={spot.image} 
-                  alt={spot.name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                
-                {/* エリアバッジ */}
-                <div className="absolute top-3 right-3">
-                  <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
-                    {spot.area}
-                  </Badge>
-                </div>
-              </div>
-
-              <CardHeader className="pb-3">
-                <div>
-                  <h3 className="font-bold text-lg line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {spot.name}
-                  </h3>
-                  
-                  {/* アクセス情報 */}
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{spot.station}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>徒歩{spot.walkMinutes}分</span>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="pb-3">
-                {/* タグ */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {spot.walkMinutes <= 5 && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      駅近
-                    </Badge>
-                  )}
-                  {spot.placeType === '公園' && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      公園
-                    </Badge>
-                  )}
-                  {spot.lines.length > 1 && (
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      複数路線
-                    </Badge>
-                  )}
-                </div>
-
-                {/* 路線 */}
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">見れる路線</p>
-                  <div className="flex flex-wrap gap-1">
-                    {spot.lines.slice(0, 3).map((line, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {line}
-                      </Badge>
-                    ))}
-                    {spot.lines.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{spot.lines.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-
-              <CardFooter className="pt-0 gap-2">
-                <Button
-                  variant={likedSpots.includes(spot.id) ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleLike(spot.id)
-                  }}
-                >
-                  <Heart className={`w-4 h-4 mr-1 ${likedSpots.includes(spot.id) ? 'fill-current' : ''}`} />
-                  いいね
-                </Button>
-                <Button
-                  variant={visitedSpots.includes(spot.id) ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleVisited(spot.id)
-                  }}
-                >
-                  <Check className="w-4 h-4 mr-1" />
-                  行った
-                </Button>
-              </CardFooter>
-            </Card>
+            />
           ))}
         </div>
-
+        
         {/* 検索結果なし */}
         {filteredSpots.length === 0 && (
           <div className="text-center py-12">
