@@ -52,8 +52,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/">
             <Image 
-              src="/logo.png" 
-              alt="" 
+              src="/logo.svg" 
+              alt="コテスポ" 
               width={180} 
               height={50}
               className="cursor-pointer hover:opacity-80 transition-opacity"

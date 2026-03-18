@@ -187,8 +187,8 @@ export function SpotList({
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link href="/">
             <Image 
-              src="/logo.png" 
-              alt="" 
+              src="/logo.svg" 
+              alt="コテスポ" 
               width={140} 
               height={40}
               className="cursor-pointer hover:opacity-80 transition-opacity"
