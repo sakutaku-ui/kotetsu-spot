@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { getApprovedSpots } from '@/app/data/spots'
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MapPin, Clock, TrendingUp, Sparkles, ArrowRight } from 'lucide-react'
-import Image from 'next/image'
+import { TrendingUp, Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Header } from '@/app/components/Header'
 import { Footer } from '@/app/components/Footer'
@@ -51,9 +49,31 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       <Header />
+      
       {/* ヒーローセクション */}
-      <section className="relative overflow-hidden text-white" style={{ background: 'linear-gradient(to bottom right, #80C342, #6BB02E, #5A9E28)' }}>
-      <div className="absolute inset-0 bg-grid-white/10" />
+      <section className="relative overflow-hidden text-white min-h-[600px]">
+        {/* 背景画像 */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=1920)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'brightness(0.4)',
+          }}
+        />
+        
+        {/* 山手線カラーのオーバーレイ */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom right, rgba(128, 195, 66, 0.6), rgba(107, 176, 46, 0.7))',
+          }}
+        />
+        
+        {/* グリッド模様 */}
+        <div className="absolute inset-0 bg-grid-white/5" />
+        
         <div className="relative max-w-7xl mx-auto px-4 py-20 text-center">
           <div className="space-y-6">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tight">
@@ -113,7 +133,12 @@ export default function HomePage() {
         
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {popularSpots.map((spot) => (
-            <SpotCard key={spot.id} spot={spot} />
+            <SpotCard 
+              key={spot.id} 
+              spot={spot} 
+              showActions={false}
+              onClick={() => window.location.href = `/spot/${spot.id}`}
+            />
           ))}
         </div>
       </section>
@@ -136,7 +161,13 @@ export default function HomePage() {
           
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {newSpots.map((spot) => (
-              <SpotCard key={spot.id} spot={spot} showNewBadge />
+              <SpotCard 
+                key={spot.id} 
+                spot={spot} 
+                showNewBadge 
+                showActions={false}
+                onClick={() => window.location.href = `/spot/${spot.id}`}
+              />
             ))}
           </div>
         </div>
