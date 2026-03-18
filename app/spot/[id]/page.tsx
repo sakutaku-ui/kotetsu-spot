@@ -19,6 +19,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { Spot } from '@/app/data/schema'
+import { ImageSlider } from '@/app/components/ImageSlider'
 
 export default function SpotDetailPage({
   params,
@@ -95,9 +96,13 @@ export default function SpotDetailPage({
       <header className="bg-white shadow-sm border-b sticky top-0 z-10 backdrop-blur-lg bg-white/90">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link href="/">
-            <h1 className="text-lg sm:text-2xl font-bold text-blue-600 cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
-              🚃 子鉄スポット帳
-            </h1>
+            <Image 
+              src="/logo.png" 
+              alt="" 
+              width={140} 
+              height={40}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+            />
           </Link>
           <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
@@ -111,18 +116,18 @@ export default function SpotDetailPage({
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* メイン画像 */}
+        {/* メイン画像スライダー */}
         <Card className="overflow-hidden mb-8 shadow-2xl">
-          <div className="relative aspect-video md:aspect-[21/9]">
-            <Image
-              src={spot.image}
+          <div className="relative">
+            <ImageSlider 
+              images={[
+                spot.image,
+                ...(spot.additionalImages || [])
+              ]}
               alt={spot.name}
-              fill
-              className="object-cover"
-              priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 p-8 text-white pointer-events-none">
               <Badge className="mb-4 bg-white/20 backdrop-blur-sm border-0 text-white">
                 {spot.area}
               </Badge>

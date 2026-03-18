@@ -65,12 +65,13 @@ async function importFromCSV() {
         description,
         imageFileName,
         safetyNote = '',
-        facilitiesStr = '' // 11列目: 近くの施設（オプション）
+        facilitiesStr = '',
+        additionalImagesStr = '' // 12列目: 追加画像（オプション）
       ] = columns
       
       console.log(`処理中: ${name}`)
       
-      // 1. 画像をアップロード
+      // 1. メイン画像をアップロード
       const imagePath = path.join(process.cwd(), 'temp-images', imageFileName.trim())
       
       if (!fs.existsSync(imagePath)) {
@@ -99,22 +100,63 @@ async function importFromCSV() {
         continue
       }
       
-      console.log(`  ✅ 画像アップロード成功`)
+      console.log(`  ✅ メイン画像アップロード成功`)
       
       // 2. 公開URLを取得
       const { data: { publicUrl } } = supabase.storage
         .from('spots')
         .getPublicUrl(storageFileName)
       
-      // 3. 路線を配列に変換
+      // 3. 追加画像をアップロード
+      const additionalImageUrls: string[] = []
+      
+      if (additionalImagesStr && additionalImagesStr.trim() !== '') {
+        const additionalImageFiles = additionalImagesStr.split(',').map(f => f.trim()).filter(f => f)
+        
+        for (const additionalFile of additionalImageFiles) {
+          const additionalPath = path.join(process.cwd(), 'temp-images', additionalFile)
+          
+          if (!fs.existsSync(additionalPath)) {
+            console.log(`  ⚠️  追加画像が見つかりません: ${additionalFile}`)
+            continue
+          }
+          
+          const additionalBuffer = fs.readFileSync(additionalPath)
+          const additionalSafeFileName = additionalFile
+            .trim()
+            .replace(/[^a-zA-Z0-9.-]/g, '_')
+            .replace(/_+/g, '_')
+            .toLowerCase()
+          const additionalStorageFileName = `${timestamp}-${additionalSafeFileName}`
+          
+          const { error: additionalUploadError } = await supabase.storage
+            .from('spots')
+            .upload(additionalStorageFileName, additionalBuffer)
+          
+          if (additionalUploadError) {
+            console.log(`  ⚠️  追加画像アップロードエラー: ${additionalFile}`)
+            continue
+          }
+          
+          const { data: { publicUrl: additionalPublicUrl } } = supabase.storage
+            .from('spots')
+            .getPublicUrl(additionalStorageFileName)
+          
+          additionalImageUrls.push(additionalPublicUrl)
+        }
+        
+        console.log(`  ✅ 追加画像 ${additionalImageUrls.length}枚アップロード成功`)
+      }
+      
+      // 4. 路線を配列に変換
       const linesList = linesStr.split(',').map(l => l.trim()).filter(l => l)
       
-      // 4. 施設を配列に変換
+      // 5. 施設を配列に変換
       const facilitiesList = facilitiesStr && facilitiesStr.trim() !== ''
         ? facilitiesStr.split(',').map(f => f.trim()).filter(f => f)
         : []
       
-      // 5. Supabaseに登録
+      // 6. Supabaseに登録
       const { error: insertError } = await supabase
         .from('spots')
         .insert({
@@ -127,7 +169,8 @@ async function importFromCSV() {
           place_type: placeType.trim(),
           lines: linesList,
           facilities: facilitiesList,
-          safety_rank: 5, // 固定値（全て安全と判断したもののみ登録）
+          additional_images: additionalImageUrls.length > 0 ? additionalImageUrls : null,
+          safety_rank: 5,
           safety_note: safetyNote ? safetyNote.trim() : null,
           image: publicUrl,
           status: 'approved',
@@ -140,6 +183,9 @@ async function importFromCSV() {
         console.log(`  ✅ 登録完了`)
         if (facilitiesList.length > 0) {
           console.log(`  📍 施設: ${facilitiesList.join(', ')}`)
+        }
+        if (additionalImageUrls.length > 0) {
+          console.log(`  🖼️  追加画像: ${additionalImageUrls.length}枚`)
         }
         successCount++
       }

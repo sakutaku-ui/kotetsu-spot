@@ -16,6 +16,7 @@ export type Spot = {
   safetyRank: SafetyRank
   safetyNote: string
   image: string
+  additionalImages?: string[]
   status: SpotStatus
   submittedBy?: string
   approvedAt?: string

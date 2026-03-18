@@ -49,12 +49,18 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50 backdrop-blur-lg bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/">
-            <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
-              🚃 子鉄スポット帳
-            </h1>
+            <Image 
+              src="/logo.png" 
+              alt="" 
+              width={180} 
+              height={50}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              priority
+            />
           </Link>
+
           <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
               <Button variant="ghost" size="sm" className="text-xs sm:text-sm">検索</Button>

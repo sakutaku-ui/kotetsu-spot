@@ -186,9 +186,13 @@ export function SpotList({
       <header className="bg-white shadow-sm sticky top-0 z-10 border-b backdrop-blur-lg bg-white/90">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link href="/">
-            <h1 className="text-lg sm:text-2xl font-bold text-blue-600 cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
-              🚃 子鉄スポット帳
-            </h1>
+            <Image 
+              src="/logo.png" 
+              alt="" 
+              width={140} 
+              height={40}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+            />
           </Link>
           <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
