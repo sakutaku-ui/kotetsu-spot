@@ -59,7 +59,7 @@ export default function HomePage() {
             backgroundImage: 'url(/hero-train.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'brightness(0.4)',
+            filter: 'brightness(0.5)',
           }}
         />
         
@@ -67,7 +67,7 @@ export default function HomePage() {
         <div 
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(to bottom right, rgba(128, 195, 66, 0.6), rgba(107, 176, 46, 0.7))',
+            background: 'linear-gradient(to bottom right, rgba(128, 195, 66, 0.3), rgba(107, 176, 46, 0.4))',
           }}
         />
         
