@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { MapPin, Clock, Heart, Check, Trees, Layers, Zap, X, ChevronDown, Store } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Header } from '@/app/components/Header'
 
 // LINE_GROUP_KEYWORDS
 const LINE_GROUP_KEYWORDS: Record<string, string[]> = {
@@ -182,28 +183,7 @@ export function SpotList({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm sticky top-0 z-10 border-b backdrop-blur-lg bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-          <Link href="/">
-            <Image 
-              src="/logo.svg" 
-              alt="コテスポ" 
-              width={140} 
-              height={40}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-            />
-          </Link>
-          <nav className="flex gap-2 sm:gap-4">
-            <Link href="/spots">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">スポット検索</Button>
-            </Link>
-            <Link href="/mypage">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">マイページ</Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* コンテンツ */}
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { MapPin, Clock, TrendingUp, Sparkles, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Header } from '@/app/components/Header'
 
 export default function HomePage() {
   const [allSpots, setAllSpots] = useState<any[]>([])
@@ -47,34 +48,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-50 backdrop-blur-lg bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
-            <Image 
-              src="/logo.svg" 
-              alt="コテスポ" 
-              width={180} 
-              height={50}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-              priority
-            />
-          </Link>
-
-          <nav className="flex gap-2 sm:gap-4">
-            <Link href="/spots">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">検索</Button>
-            </Link>
-            <Link href="/mypage">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">マイページ</Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
-
+      <Header />
       {/* ヒーローセクション */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white">
-        <div className="absolute inset-0 bg-grid-white/10" />
+      <div className="absolute inset-0 bg-grid-white/10" />
         <div className="relative max-w-7xl mx-auto px-4 py-20 text-center">
           <div className="space-y-6">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tight">
@@ -283,7 +260,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <h3 className="font-bold text-lg mb-4">子鉄スポット帳</h3>
+              <h3 className="font-bold text-lg mb-4">コテスポ！</h3>
               <p className="text-gray-400 text-sm">
                 親子で安心して電車を楽しめるスポット情報
               </p>
