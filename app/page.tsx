@@ -52,19 +52,19 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       <Header />
       {/* ヒーローセクション */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white">
+      <section className="relative overflow-hidden text-white" style={{ background: 'linear-gradient(to bottom right, #80C342, #6BB02E, #5A9E28)' }}>
       <div className="absolute inset-0 bg-grid-white/10" />
         <div className="relative max-w-7xl mx-auto px-4 py-20 text-center">
           <div className="space-y-6">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tight">
               親子で楽しむ<br />電車観察スポット
             </h2>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-green-100 max-w-2xl mx-auto">
               子供と一緒に電車を見られる安全なスポットを見つけよう
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/spots">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6">
+                <Button size="lg" className="bg-white hover:bg-gray-100 text-lg px-8 py-6" style={{ color: '#80C342' }}>
                   <Sparkles className="w-5 h-5 mr-2" />
                   スポットを探す
                 </Button>
@@ -82,15 +82,15 @@ export default function HomePage() {
           <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mt-16">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="text-4xl font-bold">{likedCount}</div>
-              <div className="text-blue-100 mt-1">いいね</div>
+              <div className="text-green-100 mt-1">いいね</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="text-4xl font-bold">{visitedCount}</div>
-              <div className="text-blue-100 mt-1">行った</div>
+              <div className="text-green-100 mt-1">行った</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="text-4xl font-bold">{stampedCount}</div>
-              <div className="text-blue-100 mt-1">スタンプ</div>
+              <div className="text-green-100 mt-1">スタンプ</div>
             </div>
           </div>
         </div>
