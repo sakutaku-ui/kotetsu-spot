@@ -56,7 +56,7 @@ export default function HomePage() {
         <div 
           className="absolute inset-0"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=1920)',
+            backgroundImage: 'url(/hero-train.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             filter: 'brightness(0.4)',
