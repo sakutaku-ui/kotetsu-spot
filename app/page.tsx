@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { getApprovedSpots } from '@/app/data/spots'
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -6,8 +9,30 @@ import { MapPin, Clock, TrendingUp, Sparkles, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default async function HomePage() {
-  const allSpots = await getApprovedSpots()
+export default function HomePage() {
+  const [allSpots, setAllSpots] = useState<any[]>([])
+  const [likedCount, setLikedCount] = useState(0)
+  const [visitedCount, setVisitedCount] = useState(0)
+  const [stampedCount, setStampedCount] = useState(0)
+
+  useEffect(() => {
+    // データ取得
+    async function loadData() {
+      const spots = await getApprovedSpots()
+      setAllSpots(spots)
+    }
+    
+    // localStorageから取得
+    const savedLiked = localStorage.getItem('likedSpots')
+    const savedVisited = localStorage.getItem('visitedSpots')
+    const savedStamped = localStorage.getItem('stampedSpots')
+    
+    if (savedLiked) setLikedCount(JSON.parse(savedLiked).length)
+    if (savedVisited) setVisitedCount(JSON.parse(savedVisited).length)
+    if (savedStamped) setStampedCount(JSON.parse(savedStamped).length)
+    
+    loadData()
+  }, [])
   
   // 人気スポット（最初の6件）
   const popularSpots = allSpots.slice(0, 6)
@@ -71,16 +96,16 @@ export default async function HomePage() {
           {/* 統計情報 */}
           <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mt-16">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl font-bold">{allSpots.length}</div>
-              <div className="text-blue-100 mt-1">スポット</div>
+              <div className="text-4xl font-bold">{likedCount}</div>
+              <div className="text-blue-100 mt-1">いいね</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl font-bold">{areas.length}</div>
-              <div className="text-blue-100 mt-1">エリア</div>
+              <div className="text-4xl font-bold">{visitedCount}</div>
+              <div className="text-blue-100 mt-1">行った</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl font-bold">100%</div>
-              <div className="text-blue-100 mt-1">安全</div>
+              <div className="text-4xl font-bold">{stampedCount}</div>
+              <div className="text-blue-100 mt-1">スタンプ</div>
             </div>
           </div>
         </div>
@@ -133,7 +158,7 @@ export default async function HomePage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-4">
-                    {spot.lines.slice(0, 3).map((line, idx) => (
+                    {spot.lines.slice(0, 3).map((line: string, idx: number) => (
                       <Badge key={idx} variant="secondary" className="text-xs">
                         {line}
                       </Badge>
@@ -204,7 +229,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-4">
-                      {spot.lines.slice(0, 3).map((line, idx) => (
+                      {spot.lines.slice(0, 3).map((line: string, idx: number) => (
                         <Badge key={idx} variant="secondary" className="text-xs">
                           {line}
                         </Badge>

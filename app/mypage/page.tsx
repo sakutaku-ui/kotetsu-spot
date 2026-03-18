@@ -69,7 +69,7 @@ export default function MyPage() {
           </Link>
           <nav className="flex gap-2 sm:gap-4">
             <Link href="/spots">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">検索</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">スポット検索</Button>
             </Link>
             <Link href="/mypage">
               <Button variant="ghost" size="sm" className="text-xs sm:text-sm">マイページ</Button>
