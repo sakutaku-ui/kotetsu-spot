@@ -59,15 +59,15 @@ export default function HomePage() {
             backgroundImage: 'url(/hero-train.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'brightness(0.5)',
+            filter: 'brightness(0.6)',
           }}
         />
         
-        {/* 山手線カラーのオーバーレイ */}
+        {/* カラーオーバーレイ */}
         <div 
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(to bottom right, rgba(128, 195, 66, 0.3), rgba(107, 176, 46, 0.4))',
+            background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.5))',
           }}
         />
         
