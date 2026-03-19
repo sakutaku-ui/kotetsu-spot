@@ -79,18 +79,18 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-6xl font-bold tracking-tight">
               親子で楽しむ<br />電車観察スポット
             </h2>
-            <p className="text-xl md:text-2xl text-green-100 max-w-2xl mx-auto">
-              子供と一緒に電車を見られる安全なスポットを見つけよう
+            <p className="text-xl md:text-2xl text-white-100 max-w-2xl mx-auto">
+              子どもが夢中になる、電車スポットを見つけよう
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/spots">
-                <Button size="lg" className="bg-white hover:bg-gray-100 text-lg px-8 py-6" style={{ color: '#80C342' }}>
+                <Button size="lg" className="text-white hover:opacity-90 text-lg px-8 py-6 shadow-lg" style={{ backgroundColor: '#80C342' }}>
               <Sparkles className="w-5 h-5 mr-2" />
                   スポットを探す
                 </Button>
               </Link>
               <Link href="#areas">
-                <Button size="lg" variant="outline" className="bg-transparent border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6">
+                <Button size="lg" className="text-white hover:opacity-80 text-lg px-8 py-6 shadow-lg" style={{ backgroundColor: '#6BB02E' }}>
                   エリアから探す
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
