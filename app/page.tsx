@@ -80,7 +80,7 @@ export default function HomePage() {
               親子で楽しむ<br />電車観察スポット
             </h2>
             <p className="text-xl md:text-2xl text-white-100 max-w-2xl mx-auto">
-              子どもが夢中になる、電車スポットを見つけよう
+              子どもが夢中になる“特等席”を見つけよう
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/spots">
