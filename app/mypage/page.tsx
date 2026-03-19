@@ -98,7 +98,12 @@ export default function MyPage() {
                 {likedSpotsList.length > 0 ? (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {likedSpotsList.map(spot => (
-                      <SpotCard key={spot.id} spot={spot} />
+                      <SpotCard 
+                        key={spot.id} 
+                        spot={spot}
+                        showActions={false}
+                        onClick={() => window.location.href = `/spot/${spot.id}`}
+                      />
                     ))}
                   </div>                  
                 ) : (
@@ -122,7 +127,12 @@ export default function MyPage() {
                 {visitedSpotsList.length > 0 ? (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {visitedSpotsList.map(spot => (
-                      <SpotCard key={spot.id} spot={spot} />
+                      <SpotCard 
+                        key={spot.id} 
+                        spot={spot}
+                        showActions={false}
+                        onClick={() => window.location.href = `/spot/${spot.id}`}
+                      />
                     ))}
                   </div>                  
                 ) : (
