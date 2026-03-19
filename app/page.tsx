@@ -85,7 +85,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/spots">
                 <Button size="lg" className="bg-white hover:bg-gray-100 text-lg px-8 py-6" style={{ color: '#80C342' }}>
-                  <Sparkles className="w-5 h-5 mr-2" />
+              <Sparkles className="w-5 h-5 mr-2" />
                   スポットを探す
                 </Button>
               </Link>
@@ -100,17 +100,17 @@ export default function HomePage() {
           
           {/* 統計情報 */}
           <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mt-16">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div className="backdrop-blur-sm rounded-2xl p-6 border-2" style={{ backgroundColor: 'rgba(128, 195, 66, 0.2)', borderColor: 'rgba(128, 195, 66, 0.4)' }}>
               <div className="text-4xl font-bold">{likedCount}</div>
-              <div className="text-green-100 mt-1">いいね</div>
+              <div className="text-white mt-1">いいね</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div className="backdrop-blur-sm rounded-2xl p-6 border-2" style={{ backgroundColor: 'rgba(128, 195, 66, 0.2)', borderColor: 'rgba(128, 195, 66, 0.4)' }}>
               <div className="text-4xl font-bold">{visitedCount}</div>
-              <div className="text-green-100 mt-1">行った</div>
+              <div className="text-white mt-1">行った</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div className="backdrop-blur-sm rounded-2xl p-6 border-2" style={{ backgroundColor: 'rgba(128, 195, 66, 0.2)', borderColor: 'rgba(128, 195, 66, 0.4)' }}>
               <div className="text-4xl font-bold">{stampedCount}</div>
-              <div className="text-green-100 mt-1">スタンプ</div>
+              <div className="text-white mt-1">スタンプ</div>
             </div>
           </div>
         </div>

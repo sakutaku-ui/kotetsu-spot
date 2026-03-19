@@ -9,7 +9,7 @@ export function Header() {
         <Link href="/">
           <Image 
             src="/logo.png" 
-            alt="コテスポッ！" 
+            alt="コテスポ" 
             width={140} 
             height={40}
             className="cursor-pointer hover:opacity-80 transition-opacity sm:w-[180px] sm:h-[50px]"
