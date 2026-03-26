@@ -58,7 +58,7 @@ export async function getSpotById(id: string): Promise<Spot | null> {
     return null
   }
   
-  return toSpot(data)
+  return convertSpotFromDB(data)
 }
 
 function convertSpotFromDB(dbSpot: any): Spot {
