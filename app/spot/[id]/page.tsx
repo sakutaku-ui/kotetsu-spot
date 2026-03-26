@@ -94,26 +94,30 @@ export default function SpotDetailPage({
       <Header />
       
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* スポット名 */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {spot.area}
+            </Badge>
+            <Badge variant="outline" className="text-sm px-3 py-1">
+              {spot.placeType}
+            </Badge>
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
+            {spot.name}
+          </h1>
+        </div>
+
         {/* メイン画像スライダー */}
         <Card className="overflow-hidden mb-8 shadow-2xl">
-          <div className="relative">
-            <ImageSlider 
-              images={spot.additionalImages && spot.additionalImages.length > 0 
-                ? spot.additionalImages 
-                : [spot.image]
-              }
-              alt={spot.name}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 p-8 text-white pointer-events-none">
-              <Badge className="mb-4 bg-white/20 backdrop-blur-sm border-0 text-white">
-                {spot.area}
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">
-                {spot.name}
-              </h1>
-            </div>
-          </div>
+          <ImageSlider 
+            images={spot.additionalImages && spot.additionalImages.length > 0 
+              ? spot.additionalImages 
+              : [spot.image]
+            }
+            alt={spot.name}
+          />
         </Card>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -141,7 +145,7 @@ export default function SpotDetailPage({
                       <div className="font-semibold text-lg">約{spot.walkMinutes}分</div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-xl sm:col-span-2">
+                  <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-xl">
                     <Tag className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="text-sm text-gray-600 mb-1">場所タイプ</div>
@@ -153,12 +157,12 @@ export default function SpotDetailPage({
                     <div>
                       <div className="text-sm text-gray-600 mb-1">安全ランク</div>
                       <div className="font-semibold text-lg flex items-center gap-2">
-                      <span>{'⭐'.repeat(spot.safetyRank)}</span>
-                      <span className="text-base text-gray-600">({spot.safetyRank}/5)</span>
-                    </div>
-                    {spot.safetyNote && (
-                      <div className="text-sm text-gray-600 mt-2">{spot.safetyNote}</div>
-                    )}
+                        <span>{'⭐'.repeat(spot.safetyRank)}</span>
+                        <span className="text-base text-gray-600">({spot.safetyRank}/5)</span>
+                      </div>
+                      {spot.safetyNote && (
+                        <div className="text-sm text-gray-600 mt-2">{spot.safetyNote}</div>
+                      )}
                     </div>
                   </div>
                 </div>
