@@ -60,3 +60,28 @@ export async function getSpotById(id: string): Promise<Spot | null> {
   
   return toSpot(data)
 }
+
+function convertSpotFromDB(dbSpot: any): Spot {
+  return {
+    id: dbSpot.id,
+    name: dbSpot.name,
+    area: dbSpot.area,
+    station: dbSpot.station,
+    walkMinutes: dbSpot.walk_minutes,
+    address: dbSpot.address,
+    description: dbSpot.description,
+    placeType: dbSpot.place_type,
+    lines: dbSpot.lines || [],
+    facilities: dbSpot.facilities || [],
+    additionalImages: dbSpot.additional_images || [],
+    safetyRank: dbSpot.safety_rank,
+    safetyNote: dbSpot.safety_note || '',
+    image: dbSpot.image,
+    status: dbSpot.status,
+    submittedBy: dbSpot.submitted_by,
+    approvedAt: dbSpot.approved_at,
+    displayOrder: dbSpot.display_order,
+    createdAt: dbSpot.created_at,
+    updatedAt: dbSpot.updated_at,
+  }
+}

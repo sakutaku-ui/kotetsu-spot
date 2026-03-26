@@ -1,4 +1,4 @@
-export type SpotStatus = 'draft' | 'pending' | 'approved' | 'rejected'
+export type SpotStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'hidden'
 export type SafetyRank = 1 | 2 | 3 | 4 | 5
 export type PlaceType = '公園' | '橋' | '跨線橋' | '展望台' | 'その他'
 
