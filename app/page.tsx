@@ -19,8 +19,20 @@ export default function HomePage() {
   useEffect(() => {
     // データ取得
     async function loadData() {
-      const spots = await getApprovedSpots()
-      setAllSpots(spots)
+      try {
+        const response = await fetch('/api/spots', {
+          cache: 'no-store'
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch spots')
+        }
+        
+        const spots = await response.json()
+        setAllSpots(spots)
+      } catch (error) {
+        console.error('Error loading spots:', error)
+      }
     }
     
     // localStorageから取得
