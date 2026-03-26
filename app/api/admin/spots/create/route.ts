@@ -10,7 +10,6 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData()
     
-    const id = formData.get('id') as string
     const name = formData.get('name') as string
     const area = formData.get('area') as string
     const station = formData.get('station') as string
@@ -25,56 +24,62 @@ export async function POST(request: Request) {
     const status = formData.get('status') as string
     const imageFiles = formData.getAll('images') as File[]
 
-    // スポット情報を更新
-    const updateData: any = {
-      name,
-      area,
-      station,
-      walk_minutes: walkMinutes,
-      address,
-      description,
-      place_type: placeType,
-      lines,
-      facilities,
-      safety_rank: safetyRank,
-      safety_note: safetyNote,
-      status,
-      updated_at: new Date().toISOString()
+    // バリデーション
+    if (!name || imageFiles.length === 0) {
+      return NextResponse.json(
+        { error: 'スポット名と画像（最低1枚）は必須です' }, 
+        { status: 400 }
+      )
     }
 
-    // 新しい画像がアップロードされた場合
-    if (imageFiles.length > 0) {
-      const uploadedUrls: string[] = []
-      const timestamp = Date.now()
+    // 全画像をアップロード
+    const uploadedUrls: string[] = []
+    const timestamp = Date.now()
 
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i]
-        const fileName = `${timestamp}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('spots')
-          .upload(fileName, file)
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i]
+      const fileName = `${timestamp}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('spots')
+        .upload(fileName, file)
 
-        if (uploadError) {
-          return NextResponse.json({ error: uploadError.message }, { status: 500 })
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('spots')
-          .getPublicUrl(fileName)
-
-        uploadedUrls.push(publicUrl)
+      if (uploadError) {
+        return NextResponse.json({ error: uploadError.message }, { status: 500 })
       }
 
-      // 1枚目がメイン画像、全画像を additional_images に保存
-      updateData.image = uploadedUrls[0]
-      updateData.additional_images = uploadedUrls
+      const { data: { publicUrl } } = supabase.storage
+        .from('spots')
+        .getPublicUrl(fileName)
+
+      uploadedUrls.push(publicUrl)
     }
 
+    // 1枚目がメイン画像、全画像を additional_images に保存
+    const mainImage = uploadedUrls[0]
+    const additionalImages = uploadedUrls
+
+    // スポット情報を登録
     const { data, error } = await supabase
       .from('spots')
-      .update(updateData)
-      .eq('id', id)
+      .insert({
+        name,
+        area,
+        station,
+        walk_minutes: walkMinutes,
+        address,
+        description,
+        place_type: placeType,
+        lines,
+        facilities,
+        safety_rank: safetyRank,
+        safety_note: safetyNote,
+        image: mainImage,
+        additional_images: additionalImages.length > 0 ? additionalImages : null,
+        status,
+        display_order: 999,
+      })
+      .select()
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

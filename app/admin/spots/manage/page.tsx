@@ -33,8 +33,9 @@ export default function ManageSpotsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [editingSpot, setEditingSpot] = useState<Spot | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isNewDialogOpen, setIsNewDialogOpen] = useState(false)
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
   // データ取得
   useEffect(() => {
@@ -93,21 +94,66 @@ export default function ManageSpotsPage() {
 
   const openEditDialog = (spot: Spot) => {
     setEditingSpot({ ...spot })
-    setImagePreview(spot.image)
-    setImageFile(null)
+    // メイン画像と追加画像を統合してプレビュー
+    const allImages = [spot.image, ...(spot.additionalImages || [])]
+    setImagePreviews(allImages)
+    setImageFiles([])
     setIsEditDialogOpen(true)
   }
 
+  const openNewDialog = () => {
+    setEditingSpot({
+      id: '',
+      name: '',
+      area: '東京',
+      station: '',
+      walkMinutes: 5,
+      address: '',
+      description: '',
+      placeType: '公園',
+      lines: [],
+      facilities: [],
+      safetyRank: 5,
+      safetyNote: '',
+      image: '',
+      status: 'draft',
+      displayOrder: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as Spot)
+    setImagePreviews([])
+    setImageFiles([])
+    setIsNewDialogOpen(true)
+  }
+
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImageFile(file)
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    setImageFiles(files)
+
+    // 全画像のプレビューを生成
+    const previews: string[] = []
+    let loadedCount = 0
+
+    files.forEach((file) => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        previews.push(reader.result as string)
+        loadedCount++
+        
+        if (loadedCount === files.length) {
+          setImagePreviews(previews)
+        }
       }
       reader.readAsDataURL(file)
-    }
+    })
+  }
+
+  // 画像を削除する関数
+  const removeImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
   }
 
   const saveSpot = async () => {
@@ -117,20 +163,23 @@ export default function ManageSpotsPage() {
       const formData = new FormData()
       formData.append('id', editingSpot.id)
       formData.append('name', editingSpot.name || '')
-      formData.append('area', editingSpot.area || '')
+      formData.append('area', editingSpot.area || '東京')
       formData.append('station', editingSpot.station || '')
       formData.append('walkMinutes', (editingSpot.walkMinutes || 0).toString())
       formData.append('address', editingSpot.address || '')
       formData.append('description', editingSpot.description || '')
-      formData.append('placeType', editingSpot.placeType || '')
+      formData.append('placeType', editingSpot.placeType || '公園')
       formData.append('lines', JSON.stringify(editingSpot.lines || []))
       formData.append('facilities', JSON.stringify(editingSpot.facilities || []))
       formData.append('safetyRank', (editingSpot.safetyRank || 5).toString())
       formData.append('safetyNote', editingSpot.safetyNote || '')
       formData.append('status', editingSpot.status || 'draft')
       
-      if (imageFile) {
-        formData.append('image', imageFile)
+      // 新しい画像がアップロードされた場合
+      if (imageFiles.length > 0) {
+        imageFiles.forEach((file) => {
+          formData.append('images', file)
+        })
       }
 
       const response = await fetch('/api/admin/spots/edit', {
@@ -150,6 +199,53 @@ export default function ManageSpotsPage() {
     } catch (error) {
       console.error('Save error:', error)
       alert('保存に失敗しました')
+    }
+  }
+
+  const createSpot = async () => {
+    if (!editingSpot) return
+    if (imageFiles.length === 0) {
+      alert('画像を選択してください（最低1枚）')
+      return
+    }
+
+    try {
+      const formData = new FormData()
+      formData.append('name', editingSpot.name || '')
+      formData.append('area', editingSpot.area || '東京')
+      formData.append('station', editingSpot.station || '')
+      formData.append('walkMinutes', (editingSpot.walkMinutes || 0).toString())
+      formData.append('address', editingSpot.address || '')
+      formData.append('description', editingSpot.description || '')
+      formData.append('placeType', editingSpot.placeType || '公園')
+      formData.append('lines', JSON.stringify(editingSpot.lines || []))
+      formData.append('facilities', JSON.stringify(editingSpot.facilities || []))
+      formData.append('safetyRank', (editingSpot.safetyRank || 5).toString())
+      formData.append('safetyNote', editingSpot.safetyNote || '')
+      formData.append('status', 'approved')
+      
+      // 複数画像をアップロード
+      imageFiles.forEach((file) => {
+        formData.append('images', file)
+      })
+
+      const response = await fetch('/api/admin/spots/create', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Create error:', error)
+        alert('登録に失敗しました: ' + (error.error || '不明なエラー'))
+        return
+      }
+
+      setIsNewDialogOpen(false)
+      loadSpots()
+    } catch (error) {
+      console.error('Create error:', error)
+      alert('登録に失敗しました')
     }
   }
 
@@ -211,6 +307,17 @@ export default function ManageSpotsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 新規登録ボタン */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            onClick={openNewDialog}
+            style={{ backgroundColor: '#80C342' }}
+            className="text-white"
+          >
+            ➕ 新規登録
+          </Button>
+        </div>
 
         {/* スポット一覧 */}
         <Card>
@@ -424,22 +531,45 @@ export default function ManageSpotsPage() {
 
               {/* 画像 */}
               <div>
-                <Label>画像</Label>
+                <Label>画像（複数選択可能）</Label>
+                <p className="text-sm text-gray-500 mb-2">※1枚目がメイン画像（サムネイル）になります</p>
                 <div className="space-y-2">
-                  {imagePreview && (
-                    <div className="relative w-full h-48 rounded overflow-hidden">
-                      <Image
-                        src={imagePreview}
-                        alt="プレビュー"
-                        fill
-                        className="object-cover"
-                      />
+                  {/* プレビュー */}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative aspect-video rounded overflow-hidden border-2 border-gray-200">
+                          {index === 0 && (
+                            <div className="absolute top-1 left-1 bg-blue-600 text-white text-xs px-2 py-1 rounded z-10">
+                              メイン
+                            </div>
+                          )}
+                          <Image
+                            src={preview}
+                            alt={`プレビュー${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                          {imageFiles.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 z-10"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
+                  
+                  {/* アップロードボタン */}
                   <div className="flex items-center gap-2">
                     <Input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleImageChange}
                       className="hidden"
                       id="image-upload"
@@ -452,8 +582,8 @@ export default function ManageSpotsPage() {
                         </span>
                       </Button>
                     </Label>
-                    {imageFile && (
-                      <span className="text-sm text-gray-500">{imageFile.name}</span>
+                    {imageFiles.length > 0 && (
+                      <span className="text-sm text-gray-500">{imageFiles.length}枚選択中</span>
                     )}
                   </div>
                 </div>
@@ -537,6 +667,277 @@ export default function ManageSpotsPage() {
                 </Button>
                 <Button onClick={saveSpot} style={{ backgroundColor: '#80C342' }} className="text-white">
                   保存する
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 新規登録ダイアログ */}
+      <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>新規スポット登録</DialogTitle>
+          </DialogHeader>
+
+          {editingSpot && (
+            <div className="space-y-4">
+              {/* スポット名 */}
+              <div>
+                <Label>スポット名 <span className="text-red-500">*</span></Label>
+                <Input
+                  value={editingSpot?.name || ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    if (editingSpot) {
+                      setEditingSpot({ ...editingSpot, name: e.target.value })
+                    }
+                  }}
+                  placeholder="例: 荒川岩淵水門"
+                />
+              </div>
+
+              {/* エリア・駅名 */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>エリア <span className="text-red-500">*</span></Label>
+                  <Select 
+                    value={editingSpot?.area || '東京'}
+                    onValueChange={(value: string) => {
+                      if (editingSpot) {
+                        setEditingSpot({ ...editingSpot, area: value })
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="東京">東京</SelectItem>
+                      <SelectItem value="埼玉">埼玉</SelectItem>
+                      <SelectItem value="神奈川">神奈川</SelectItem>
+                      <SelectItem value="千葉">千葉</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>最寄り駅 <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={editingSpot?.station || ''}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      if (editingSpot) {
+                        setEditingSpot({ ...editingSpot, station: e.target.value })
+                      }
+                    }}
+                    placeholder="例: 赤羽岩淵駅"
+                  />
+                </div>
+              </div>
+
+              {/* 徒歩分数・場所タイプ */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>徒歩分数 <span className="text-red-500">*</span></Label>
+                  <Input
+                    type="number"
+                    value={editingSpot?.walkMinutes || 0}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      if (editingSpot) {
+                        setEditingSpot({ ...editingSpot, walkMinutes: parseInt(e.target.value) || 0 })
+                      }
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label>場所タイプ <span className="text-red-500">*</span></Label>
+                  <Select 
+                    value={editingSpot?.placeType || '公園'}
+                    onValueChange={(value: string) => {
+                      if (editingSpot) {
+                        setEditingSpot({ ...editingSpot, placeType: value as PlaceType })
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="公園">公園</SelectItem>
+                      <SelectItem value="橋">橋</SelectItem>
+                      <SelectItem value="跨線橋">跨線橋</SelectItem>
+                      <SelectItem value="展望台">展望台</SelectItem>
+                      <SelectItem value="その他">その他</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* 住所 */}
+              <div>
+                <Label>住所 <span className="text-red-500">*</span></Label>
+                <Input
+                  value={editingSpot?.address || ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    if (editingSpot) {
+                      setEditingSpot({ ...editingSpot, address: e.target.value })
+                    }
+                  }}
+                  placeholder="例: 東京都北区志茂5-41-1"
+                />
+              </div>
+
+              {/* 説明 */}
+              <div>
+                <Label>説明 <span className="text-red-500">*</span></Label>
+                <Textarea
+                  value={editingSpot?.description || ''}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                    if (editingSpot) {
+                      setEditingSpot({ ...editingSpot, description: e.target.value })
+                    }
+                  }}
+                  rows={4}
+                  placeholder="スポットの特徴や魅力を記入してください"
+                />
+              </div>
+
+              {/* 画像 */}
+              <div>
+                <Label>画像（複数選択可能） <span className="text-red-500">*</span></Label>
+                <p className="text-sm text-gray-500 mb-2">※1枚目がメイン画像（サムネイル）になります</p>
+                <div className="space-y-2">
+                  {/* プレビュー */}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative aspect-video rounded overflow-hidden border-2 border-gray-200">
+                          {index === 0 && (
+                            <div className="absolute top-1 left-1 bg-blue-600 text-white text-xs px-2 py-1 rounded z-10">
+                              メイン
+                            </div>
+                          )}
+                          <Image
+                            src={preview}
+                            alt={`プレビュー${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 z-10"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* アップロードボタン */}
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="new-image-upload"
+                    />
+                    <Label htmlFor="new-image-upload" className="cursor-pointer">
+                      <Button type="button" variant="outline" asChild>
+                        <span>
+                          <Upload className="w-4 h-4 mr-2" />
+                          画像を選択
+                        </span>
+                      </Button>
+                    </Label>
+                    {imageFiles.length > 0 && (
+                      <span className="text-sm text-gray-500">{imageFiles.length}枚選択中</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 見える路線 */}
+              <div>
+                <Label>見える路線（カンマ区切り） <span className="text-red-500">*</span></Label>
+                <Input
+                  value={editingSpot?.lines?.join(', ') || ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    if (editingSpot) {
+                      setEditingSpot({ 
+                        ...editingSpot, 
+                        lines: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s)
+                      })
+                    }
+                  }}
+                  placeholder="例: 京浜東北線, 南北線"
+                />
+              </div>
+
+              {/* 近くの施設 */}
+              <div>
+                <Label>近くの施設（カンマ区切り）</Label>
+                <Input
+                  value={editingSpot?.facilities?.join(', ') || ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    if (editingSpot) {
+                      setEditingSpot({ 
+                        ...editingSpot, 
+                        facilities: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s)
+                      })
+                    }
+                  }}
+                  placeholder="例: コンビニ, トイレ, カフェ"
+                />
+              </div>
+
+              {/* 安全ランク・メモ */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>安全ランク</Label>
+                  <Select 
+                    value={editingSpot?.safetyRank?.toString() || '5'}
+                    onValueChange={(value: string) => {
+                      if (editingSpot) {
+                        setEditingSpot({ ...editingSpot, safetyRank: parseInt(value) as SafetyRank })
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 - 注意が必要</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3 - 普通</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5 - 非常に安全</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>安全メモ</Label>
+                  <Input
+                    value={editingSpot?.safetyNote || ''}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      if (editingSpot) {
+                        setEditingSpot({ ...editingSpot, safetyNote: e.target.value })
+                      }
+                    }}
+                    placeholder="例: 柵あり"
+                  />
+                </div>
+              </div>
+
+              {/* ボタン */}
+              <div className="flex gap-2 justify-end pt-4">
+                <Button variant="outline" onClick={() => setIsNewDialogOpen(false)}>
+                  キャンセル
+                </Button>
+                <Button onClick={createSpot} style={{ backgroundColor: '#80C342' }} className="text-white">
+                  登録する
                 </Button>
               </div>
             </div>
