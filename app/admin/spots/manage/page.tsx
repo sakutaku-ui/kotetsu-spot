@@ -106,7 +106,7 @@ export default function ManageSpotsPage() {
     setEditingSpot({
       id: '',
       name: '',
-      area: '東京',
+      area: '東京都',
       station: '',
       walkMinutes: 5,
       address: '',
@@ -164,7 +164,7 @@ export default function ManageSpotsPage() {
       const formData = new FormData()
       formData.append('id', editingSpot.id)
       formData.append('name', editingSpot.name || '')
-      formData.append('area', editingSpot.area || '東京')
+      formData.append('area', editingSpot.area || '東京都')
       formData.append('station', editingSpot.station || '')
       formData.append('walkMinutes', (editingSpot.walkMinutes || 0).toString())
       formData.append('address', editingSpot.address || '')
@@ -213,7 +213,7 @@ export default function ManageSpotsPage() {
     try {
       const formData = new FormData()
       formData.append('name', editingSpot.name || '')
-      formData.append('area', editingSpot.area || '東京')
+      formData.append('area', editingSpot.area || '東京都')
       formData.append('station', editingSpot.station || '')
       formData.append('walkMinutes', (editingSpot.walkMinutes || 0).toString())
       formData.append('address', editingSpot.address || '')
@@ -434,7 +434,7 @@ export default function ManageSpotsPage() {
                 <div>
                   <Label>エリア</Label>
                   <Select 
-                    value={editingSpot?.area || '東京'}
+                    value={editingSpot?.area || '東京都'}
                     onValueChange={(value: string) => {
                       if (editingSpot) {
                         setEditingSpot({ ...editingSpot, area: value })
@@ -445,10 +445,10 @@ export default function ManageSpotsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="東京">東京</SelectItem>
-                      <SelectItem value="埼玉">埼玉</SelectItem>
-                      <SelectItem value="神奈川">神奈川</SelectItem>
-                      <SelectItem value="千葉">千葉</SelectItem>
+                      <SelectItem value="東京都">東京都</SelectItem>
+                      <SelectItem value="埼玉県">埼玉県</SelectItem>
+                      <SelectItem value="神奈川県">神奈川県</SelectItem>
+                      <SelectItem value="千葉県">千葉県</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -699,7 +699,7 @@ export default function ManageSpotsPage() {
                 <div>
                   <Label>エリア <span className="text-red-500">*</span></Label>
                   <Select 
-                    value={editingSpot?.area || '東京'}
+                    value={editingSpot?.area || '東京都'}
                     onValueChange={(value: string) => {
                       if (editingSpot) {
                         setEditingSpot({ ...editingSpot, area: value })
@@ -710,10 +710,10 @@ export default function ManageSpotsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="東京">東京</SelectItem>
-                      <SelectItem value="埼玉">埼玉</SelectItem>
-                      <SelectItem value="神奈川">神奈川</SelectItem>
-                      <SelectItem value="千葉">千葉</SelectItem>
+                      <SelectItem value="東京都">東京都</SelectItem>
+                      <SelectItem value="埼玉県">埼玉県</SelectItem>
+                      <SelectItem value="神奈川県">神奈川県</SelectItem>
+                      <SelectItem value="千葉県">千葉県</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

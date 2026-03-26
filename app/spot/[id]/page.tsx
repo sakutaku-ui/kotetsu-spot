@@ -16,8 +16,6 @@ import {
   Check,
   Store
 } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { Spot } from '@/app/data/schema'
 import { ImageSlider } from '@/app/components/ImageSlider'
 import { Header } from '@/app/components/Header'
@@ -100,10 +98,10 @@ export default function SpotDetailPage({
         <Card className="overflow-hidden mb-8 shadow-2xl">
           <div className="relative">
             <ImageSlider 
-              images={[
-                spot.image,
-                ...(spot.additionalImages || [])
-              ]}
+              images={spot.additionalImages && spot.additionalImages.length > 0 
+                ? spot.additionalImages 
+                : [spot.image]
+              }
               alt={spot.name}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
@@ -165,25 +163,27 @@ export default function SpotDetailPage({
             </Card>
 
             {/* 見える路線 */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Train className="w-5 h-5 text-blue-600" />
-                  見える路線
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {spot.lines.map((line: string, idx: number) => (
-                    <Badge 
-                      key={idx} 
-                      variant="secondary" 
-                      className="px-4 py-2 text-sm font-medium"
-                    >
-                      {line}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {spot.lines && spot.lines.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Train className="w-5 h-5 text-blue-600" />
+                    見える路線
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {spot.lines.map((line: string, idx: number) => (
+                      <Badge 
+                        key={idx} 
+                        variant="secondary" 
+                        className="px-4 py-2 text-sm font-medium"
+                      >
+                        {line}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 安全情報 */}
             {spot.safetyNote && (
@@ -195,6 +195,10 @@ export default function SpotDetailPage({
                       <h2 className="text-xl font-bold mb-3 text-green-900">
                         安全情報
                       </h2>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-2xl">{'⭐'.repeat(spot.safetyRank)}</span>
+                        <span className="text-gray-600 text-sm">安全ランク: {spot.safetyRank}/5</span>
+                      </div>
                       <p className="text-gray-700 leading-relaxed">
                         {spot.safetyNote}
                       </p>
@@ -208,15 +212,15 @@ export default function SpotDetailPage({
           {/* サイドバー */}
           <div className="space-y-6">
             {/* 近くの施設 */}
-            <Card className="border-blue-200 bg-blue-50/50">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <Store className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold mb-4 text-blue-900">
-                      近くの施設
-                    </h2>
-                    {spot.facilities && spot.facilities.length > 0 ? (
+            {spot.facilities && spot.facilities.length > 0 && (
+              <Card className="border-blue-200 bg-blue-50/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-3">
+                    <Store className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold mb-4 text-blue-900">
+                        近くの施設
+                      </h2>
                       <div className="flex flex-wrap gap-2">
                         {spot.facilities.map((facility, idx) => (
                           <Badge
@@ -228,15 +232,12 @@ export default function SpotDetailPage({
                           </Badge>
                         ))}
                       </div>
-                    ) : (
-                      <p className="text-gray-600 text-sm">
-                        近くの施設情報はありません
-                      </p>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
+
             {/* 住所カード */}
             <Card>
               <CardContent className="p-6">
@@ -245,7 +246,14 @@ export default function SpotDetailPage({
                   {spot.address}
                 </p>
                 <Separator className="my-4" />
-                <Button className="w-full" variant="outline">
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => {
+                    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.address)}`
+                    window.open(googleMapsUrl, '_blank')
+                  }}
+                >
                   <MapPin className="w-4 h-4 mr-2" />
                   地図で見る
                 </Button>
@@ -267,12 +275,12 @@ export default function SpotDetailPage({
                       公園あり
                     </Badge>
                   )}
-                  {spot.lines.length > 1 && (
+                  {spot.lines && spot.lines.length > 1 && (
                     <Badge variant="outline" className="w-full justify-start bg-blue-50 text-blue-700 border-blue-200 py-2">
                       複数路線が見れる
                     </Badge>
                   )}
-                  {spot.lines.some((line: string) => line.includes('新幹線') || line.includes('特急')) && (
+                  {spot.lines && spot.lines.some((line: string) => line.includes('新幹線') || line.includes('特急')) && (
                     <Badge variant="outline" className="w-full justify-start bg-purple-50 text-purple-700 border-purple-200 py-2">
                       特急・新幹線が見れる
                     </Badge>
@@ -289,6 +297,7 @@ export default function SpotDetailPage({
                   size="lg"
                   variant={isLiked ? "default" : "outline"}
                   onClick={toggleLike}
+                  style={isLiked ? { backgroundColor: '#80C342' } : {}}
                 >
                   <Heart className={`w-5 h-5 mr-2 ${isLiked ? 'fill-current' : ''}`} />
                   {isLiked ? 'いいね済み' : 'いいね'}
@@ -298,6 +307,7 @@ export default function SpotDetailPage({
                   size="lg"
                   variant={isVisited ? "default" : "outline"}
                   onClick={toggleVisited}
+                  style={isVisited ? { backgroundColor: '#80C342' } : {}}
                 >
                   <Check className="w-5 h-5 mr-2" />
                   {isVisited ? '行った！' : '行った'}
