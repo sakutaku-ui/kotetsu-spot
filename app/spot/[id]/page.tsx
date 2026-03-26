@@ -148,6 +148,19 @@ export default function SpotDetailPage({
                       <div className="font-semibold text-lg">{spot.placeType}</div>
                     </div>
                   </div>
+                  <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-xl">
+                    <Shield className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="text-sm text-gray-600 mb-1">安全ランク</div>
+                      <div className="font-semibold text-lg flex items-center gap-2">
+                      <span>{'⭐'.repeat(spot.safetyRank)}</span>
+                      <span className="text-base text-gray-600">({spot.safetyRank}/5)</span>
+                    </div>
+                    {spot.safetyNote && (
+                      <div className="text-sm text-gray-600 mt-2">{spot.safetyNote}</div>
+                    )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -185,24 +198,24 @@ export default function SpotDetailPage({
               </Card>
             )}
 
-            {/* 安全情報 */}
-            {spot.safetyNote && (
-              <Card className="border-green-200 bg-green-50/50">
+            {/* 近くの施設 */}
+            {spot.facilities && spot.facilities.length > 0 && (
+              <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-3">
-                    <Shield className="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h2 className="text-xl font-bold mb-3 text-green-900">
-                        安全情報
-                      </h2>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-2xl">{'⭐'.repeat(spot.safetyRank)}</span>
-                        <span className="text-gray-600 text-sm">安全ランク: {spot.safetyRank}/5</span>
-                      </div>
-                      <p className="text-gray-700 leading-relaxed">
-                        {spot.safetyNote}
-                      </p>
-                    </div>
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Store className="w-5 h-5 text-blue-600" />
+                    近くの施設
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {spot.facilities.map((facility, idx) => (
+                      <Badge 
+                        key={idx} 
+                        variant="secondary" 
+                        className="px-4 py-2 text-sm font-medium"
+                      >
+                        {facility}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -211,33 +224,6 @@ export default function SpotDetailPage({
 
           {/* サイドバー */}
           <div className="space-y-6">
-            {/* 近くの施設 */}
-            {spot.facilities && spot.facilities.length > 0 && (
-              <Card className="border-blue-200 bg-blue-50/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-3">
-                    <Store className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <h2 className="text-xl font-bold mb-4 text-blue-900">
-                        近くの施設
-                      </h2>
-                      <div className="flex flex-wrap gap-2">
-                        {spot.facilities.map((facility, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="px-4 py-2 text-sm font-medium bg-white border-blue-200"
-                          >
-                            {facility}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* 住所カード */}
             <Card>
               <CardContent className="p-6">
