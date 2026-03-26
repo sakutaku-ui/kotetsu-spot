@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { TagInput } from '@/app/components/TagInput'
 import {
   Select,
   SelectContent,
@@ -591,38 +592,34 @@ export default function ManageSpotsPage() {
 
               {/* 見える路線 */}
               <div>
-                <Label>見える路線（カンマ区切り）</Label>
-                <Input
-                  value={editingSpot?.lines?.join(', ') || ''}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                <Label>見える路線</Label>
+                <p className="text-sm text-gray-500 mb-2">Enterキーまたはカンマで追加</p>
+                <TagInput
+                  value={editingSpot?.lines || []}
+                  onChange={(lines) => {
                     if (editingSpot) {
-                      setEditingSpot({ 
-                        ...editingSpot, 
-                        lines: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s)
-                      })
+                      setEditingSpot({ ...editingSpot, lines })
                     }
                   }}
-                  placeholder="京浜東北線, 南北線"
+                  placeholder="例: 山手線"
                 />
               </div>
 
               {/* 近くの施設 */}
               <div>
-                <Label>近くの施設（カンマ区切り）</Label>
-                <Input
-                  value={editingSpot?.facilities?.join(', ') || ''}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                <Label>近くの施設</Label>
+                <p className="text-sm text-gray-500 mb-2">Enterキーまたはカンマで追加</p>
+                <TagInput
+                  value={editingSpot?.facilities || []}
+                  onChange={(facilities) => {
                     if (editingSpot) {
-                      setEditingSpot({ 
-                        ...editingSpot, 
-                        facilities: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s)
-                      })
+                      setEditingSpot({ ...editingSpot, facilities })
                     }
                   }}
-                  placeholder="コンビニ, トイレ, カフェ"
+                  placeholder="例: コンビニ"
                 />
               </div>
-
+              
               {/* 安全ランク・メモ */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -859,37 +856,33 @@ export default function ManageSpotsPage() {
                 </div>
               </div>
 
-              {/* 見える路線 */}
-              <div>
-                <Label>見える路線（カンマ区切り） <span className="text-red-500">*</span></Label>
-                <Input
-                  value={editingSpot?.lines?.join(', ') || ''}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+{/* 見える路線 */}
+<div>
+                <Label>見える路線 <span className="text-red-500">*</span></Label>
+                <p className="text-sm text-gray-500 mb-2">Enterキーまたはカンマで追加</p>
+                <TagInput
+                  value={editingSpot?.lines || []}
+                  onChange={(lines) => {
                     if (editingSpot) {
-                      setEditingSpot({ 
-                        ...editingSpot, 
-                        lines: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s)
-                      })
+                      setEditingSpot({ ...editingSpot, lines })
                     }
                   }}
-                  placeholder="例: 京浜東北線, 南北線"
+                  placeholder="例: 山手線"
                 />
               </div>
 
               {/* 近くの施設 */}
               <div>
-                <Label>近くの施設（カンマ区切り）</Label>
-                <Input
-                  value={editingSpot?.facilities?.join(', ') || ''}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                <Label>近くの施設</Label>
+                <p className="text-sm text-gray-500 mb-2">Enterキーまたはカンマで追加</p>
+                <TagInput
+                  value={editingSpot?.facilities || []}
+                  onChange={(facilities) => {
                     if (editingSpot) {
-                      setEditingSpot({ 
-                        ...editingSpot, 
-                        facilities: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s)
-                      })
+                      setEditingSpot({ ...editingSpot, facilities })
                     }
                   }}
-                  placeholder="例: コンビニ, トイレ, カフェ"
+                  placeholder="例: コンビニ"
                 />
               </div>
 
