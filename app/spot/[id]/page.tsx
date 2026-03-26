@@ -96,14 +96,6 @@ export default function SpotDetailPage({
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* スポット名 */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Badge variant="secondary" className="text-sm px-3 py-1">
-              {spot.area}
-            </Badge>
-            <Badge variant="outline" className="text-sm px-3 py-1">
-              {spot.placeType}
-            </Badge>
-          </div>
           <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
             {spot.name}
           </h1>
